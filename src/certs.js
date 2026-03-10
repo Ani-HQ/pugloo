@@ -147,8 +147,8 @@ export function generateDomainCert(domain) {
 export function getCertPaths(domain) {
   const domainDir = path.join(CERTS_DIR, domain);
   return {
-    certPath: path.join(domainDir, "cert.pem"),
-    keyPath: path.join(domainDir, "key.pem"),
+    cert: path.join(domainDir, "cert.pem"),
+    key: path.join(domainDir, "key.pem"),
   };
 }
 

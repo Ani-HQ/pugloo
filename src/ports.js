@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { mkdirSync, writeFileSync, existsSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
@@ -19,17 +19,19 @@ function ensureDir() {
   mkdirSync(PUGLOO_DIR, { recursive: true });
 }
 
+const sudo = process.getuid() === 0 ? "" : "sudo ";
+
 // --- macOS (pfctl) ---
 
 function setupPf() {
   ensureDir();
   writeFileSync(PF_CONF, PF_RULES, "utf-8");
-  execSync(`sudo pfctl -ef ${PF_CONF}`, { stdio: "pipe" });
+  execSync(`${sudo}pfctl -ef ${PF_CONF}`, { stdio: "inherit" });
 }
 
 function removePf() {
   try {
-    execSync(`sudo pfctl -F all -f /etc/pf.conf`, { stdio: "pipe" });
+    execSync(`${sudo}pfctl -F all -f /etc/pf.conf`, { stdio: "inherit" });
   } catch {
     // pf may not have been active
   }
@@ -37,7 +39,7 @@ function removePf() {
 
 function isPfActive() {
   try {
-    const output = execSync(`sudo pfctl -s rules 2>/dev/null`, {
+    const output = execSync(`pfctl -s rules 2>/dev/null`, {
       encoding: "utf-8",
     });
     return output.includes("10080") || output.includes("10443");
@@ -49,19 +51,19 @@ function isPfActive() {
 // --- Linux (iptables) ---
 
 function iptablesCmd(action, from, to) {
-  return `sudo iptables -t nat ${action} OUTPUT -p tcp --dport ${from} -j REDIRECT --to-port ${to}`;
+  return `${sudo}iptables -t nat ${action} OUTPUT -p tcp --dport ${from} -j REDIRECT --to-port ${to}`;
 }
 
 function setupIptables() {
   for (const { from, to } of IPTABLES_RULES) {
-    execSync(iptablesCmd("-A", from, to), { stdio: "pipe" });
+    execSync(iptablesCmd("-A", from, to), { stdio: "inherit" });
   }
 }
 
 function removeIptables() {
   for (const { from, to } of IPTABLES_RULES) {
     try {
-      execSync(iptablesCmd("-D", from, to), { stdio: "pipe" });
+      execSync(iptablesCmd("-D", from, to), { stdio: "inherit" });
     } catch {
       // rule may not exist
     }
@@ -70,7 +72,7 @@ function removeIptables() {
 
 function isIptablesActive() {
   try {
-    const output = execSync(`sudo iptables -t nat -L OUTPUT -n 2>/dev/null`, {
+    const output = execSync(`iptables -t nat -L OUTPUT -n 2>/dev/null`, {
       encoding: "utf-8",
     });
     return output.includes("10080") || output.includes("10443");
@@ -86,6 +88,7 @@ const isMac = process.platform === "darwin";
 /**
  * Set up port forwarding: 80 -> 10080, 443 -> 10443.
  * Uses pfctl on macOS, iptables on Linux.
+ * Will prompt for sudo password if not already root.
  */
 export function setupPortForwarding() {
   if (isMac) {

@@ -4,6 +4,8 @@ import { getMappings, saveMappings } from '../store.js';
 import { addHost } from '../hosts.js';
 import { generateDomainCert } from '../certs.js';
 import { ensureDaemon, reloadDaemon } from '../daemon.js';
+import { setupPortForwarding, isPortForwardingActive } from '../ports.js';
+import { dropPrivileges } from '../privileges.js';
 
 const mapCommand = new Command('map')
   .description('Map a .test domain to a local port')
@@ -28,6 +30,30 @@ const mapCommand = new Command('map')
 
     console.log(`\n${symbols.arrow} Mapping ${bold(cyan(domain))} ${dim('->')} ${bold(green(`localhost:${port}`))}\n`);
 
+    // --- Privileged operations (need root) ---
+
+    // Add hosts entry
+    try {
+      addHost(hostname);
+      console.log(`  ${symbols.check} Hosts entry added for ${cyan(hostname)}`);
+    } catch (err) {
+      console.log(`  ${symbols.warn} Could not update /etc/hosts (run with sudo)`);
+      console.log(`    ${dim('Add manually:')} 127.0.0.1 ${hostname} # pugloo`);
+    }
+
+    // Ensure port forwarding
+    try {
+      if (!isPortForwardingActive()) {
+        setupPortForwarding();
+      }
+      console.log(`  ${symbols.check} Port forwarding active`);
+    } catch {
+      console.log(`  ${symbols.warn} Could not set up port forwarding ${dim('(requires sudo)')}`);
+    }
+
+    // --- Drop root privileges for remaining file operations ---
+    dropPrivileges();
+
     // Save the mapping
     const mappings = getMappings();
     if (!mappings[hostname]) {
@@ -36,15 +62,6 @@ const mapCommand = new Command('map')
     mappings[hostname][pathPrefix] = { port };
     saveMappings(mappings);
     console.log(`  ${symbols.check} Mapping saved`);
-
-    // Add hosts entry so the .test domain resolves to 127.0.0.1
-    try {
-      addHost(hostname);
-      console.log(`  ${symbols.check} Hosts entry added for ${cyan(hostname)}`);
-    } catch (err) {
-      console.log(`  ${symbols.warn} Could not update /etc/hosts (run with sudo)`);
-      console.log(`    ${dim('Add manually:')} 127.0.0.1 ${hostname} # pugloo`);
-    }
 
     // Generate TLS certs for the domain
     try {

@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { bold, green, red, dim, symbols } from '../colors.js';
 import { stopDaemon, isDaemonRunning, getDaemonPid } from '../daemon.js';
+import { removePortForwarding } from '../ports.js';
 
 const stopCommand = new Command('stop')
   .description('Stop the pugloo proxy daemon')
@@ -14,8 +15,16 @@ const stopCommand = new Command('stop')
     console.log(`\n${symbols.arrow} Stopping daemon ${dim(`(pid ${pid})`)}...\n`);
 
     stopDaemon();
+    console.log(`  ${symbols.check} Daemon stopped`);
 
-    console.log(`  ${symbols.check} ${green('Daemon stopped.')}\n`);
+    try {
+      removePortForwarding();
+      console.log(`  ${symbols.check} Port forwarding removed`);
+    } catch {
+      console.log(`  ${symbols.warn} Could not remove port forwarding ${dim('(requires sudo)')}`);
+    }
+
+    console.log('');
   });
 
 export default stopCommand;
