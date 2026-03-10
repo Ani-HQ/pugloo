@@ -810,6 +810,55 @@ footer{
           </div>
           <div class="changelog-desc">Added CLAUDE.md with branching rules, commit conventions, and code style guidelines for contributors.</div>
         </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">12:30 PM</span>
+            <span class="changelog-title">Fix daemon crash on startup</span>
+          </div>
+          <div class="changelog-desc">Fixed a property name mismatch in getCertPaths() that returned certPath/keyPath but the proxy expected cert/key. This caused the daemon to crash silently on every start.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">1:15 PM</span>
+            <span class="changelog-title">Fix root-owned file permissions</span>
+          </div>
+          <div class="changelog-desc">Running pugloo map with sudo created certs owned by root, making them unreadable by the daemon. Added privilege dropping so only /etc/hosts writes run as root.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">2:45 PM</span>
+            <span class="changelog-title">Privilege management</span>
+          </div>
+          <div class="changelog-desc">New privileges module detects sudo context and drops back to the real user for cert generation, mapping storage, and daemon management. Applied to map, unmap, and up commands.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">4:00 PM</span>
+            <span class="changelog-title">Automatic port forwarding</span>
+          </div>
+          <div class="changelog-desc">Port forwarding (443 → 10443, 80 → 10080) is now set up automatically when the daemon starts. No more manual pfctl commands.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">5:00 PM</span>
+            <span class="changelog-title">Port forwarding teardown</span>
+          </div>
+          <div class="changelog-desc">pugloo stop now removes pfctl/iptables rules automatically. Status command shows port forwarding state alongside daemon and mapping info.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">6:00 PM</span>
+            <span class="changelog-title">Interactive sudo prompts</span>
+          </div>
+          <div class="changelog-desc">Port forwarding commands now use stdio inherit so sudo can prompt for a password in the terminal. Skips sudo prefix when already running as root.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">7:15 PM</span>
+            <span class="changelog-title">Plug-and-play experience</span>
+          </div>
+          <div class="changelog-desc">One command does everything: pugloo map myapp.test 3000 now handles hosts, certs, port forwarding, and daemon startup. No manual setup steps required.</div>
+        </div>
       </div>
     </div>
   </div>
