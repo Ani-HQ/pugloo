@@ -390,6 +390,41 @@ footer{
 @media(max-width:480px){
   .footer-bottom{flex-direction:column;gap:12px;text-align:center}
 }
+
+/* ============ CHANGELOG ============ */
+.changelog-section{background:var(--bg-light)}
+.changelog{max-width:700px;margin:0 auto}
+.changelog-date{
+  font-size:1.1rem;font-weight:800;color:var(--text);
+  margin:32px 0 16px;padding-left:28px;
+  position:relative;
+}
+.changelog-date:first-child{margin-top:0}
+.changelog-date::before{
+  content:'';position:absolute;left:8px;top:50%;transform:translateY(-50%);
+  width:10px;height:10px;border-radius:50%;background:var(--primary);
+}
+.changelog-entries{
+  border-left:2px solid var(--border);
+  margin-left:12px;padding-left:24px;
+}
+.changelog-entry{
+  padding:14px 18px;margin-bottom:12px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);
+  transition:box-shadow .2s;
+}
+.changelog-entry:hover{box-shadow:var(--shadow-md)}
+.changelog-entry-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:4px;
+}
+.changelog-time{
+  font-family:var(--font-mono);font-size:.75rem;
+  color:var(--primary);font-weight:600;
+  background:var(--primary-light);padding:2px 8px;border-radius:4px;
+}
+.changelog-title{font-size:.95rem;font-weight:700;color:var(--text)}
+.changelog-desc{font-size:.85rem;color:var(--text-secondary);line-height:1.5}
 </style>
 </head>
 <body>
@@ -405,7 +440,8 @@ footer{
       <a href="#how-it-works">How it works</a>
       <a href="#features">Features</a>
       <a href="#demo">Demo</a>
-      <a href="https://github.com/pugloo/pugloo" target="_blank" rel="noopener">Docs</a>
+      <a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">Docs</a>
+      <a href="#changelog">Changelog</a>
       <a href="#install" class="nav-cta">Get Started Free</a>
     </div>
   </div>
@@ -428,7 +464,7 @@ footer{
     </p>
     <div class="hero-buttons reveal reveal-d2">
       <a href="#install" class="btn btn-primary">Get Started Free</a>
-      <a href="https://github.com/pugloo/pugloo" class="btn btn-outline" target="_blank" rel="noopener">
+      <a href="https://github.com/Ani-HQ/pugloo" class="btn btn-outline" target="_blank" rel="noopener">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
         View on GitHub
       </a>
@@ -654,6 +690,124 @@ footer{
   </div>
 </section>
 
+<!-- ============ CHANGELOG ============ -->
+<section id="changelog" class="changelog-section">
+  <div class="container">
+    <div class="section-header center reveal">
+      <div class="label">Changelog</div>
+      <h2>Built in public. Updated constantly.</h2>
+      <p>Follow the development of pugloo from day one.</p>
+    </div>
+    <div class="changelog reveal">
+      <div class="changelog-date">March 9, 2026</div>
+      <div class="changelog-entries">
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">10:00 AM</span>
+            <span class="changelog-title">Project kickoff</span>
+          </div>
+          <div class="changelog-desc">Initial project scaffolding. Set up Node.js project with commander, http-proxy, node-forge, js-yaml, and ws dependencies.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">11:00 AM</span>
+            <span class="changelog-title">Core proxy engine</span>
+          </div>
+          <div class="changelog-desc">Built the HTTPS reverse proxy with SNI support, longest-prefix path matching, and automatic HTTP-to-HTTPS redirect.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">12:00 PM</span>
+            <span class="changelog-title">Certificate authority</span>
+          </div>
+          <div class="changelog-desc">Implemented root CA generation and per-domain SSL certificate creation using node-forge. Certs stored at ~/.pugloo/.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">1:00 PM</span>
+            <span class="changelog-title">System integration</span>
+          </div>
+          <div class="changelog-desc">Added /etc/hosts management, port forwarding via pfctl (macOS) and iptables (Linux), and persistent mapping storage.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">2:00 PM</span>
+            <span class="changelog-title">CLI commands</span>
+          </div>
+          <div class="changelog-desc">Built all 9 CLI commands: map, unmap, up, down, list, share, status, start, stop. Colorful terminal output with ANSI codes.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">3:00 PM</span>
+            <span class="changelog-title">Background daemon</span>
+          </div>
+          <div class="changelog-desc">Implemented daemon process management with fork, PID tracking, SIGHUP-based config reload, and graceful shutdown.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">4:00 PM</span>
+            <span class="changelog-title">WebSocket tunneling</span>
+          </div>
+          <div class="changelog-desc">Added public sharing via WebSocket tunnels. Client connects to tunnel server, receives public URL, proxies requests locally.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">5:00 PM</span>
+            <span class="changelog-title">Project config</span>
+          </div>
+          <div class="changelog-desc">Added .pugloo.yaml support. Define domain, service ports, and startup commands. pugloo up starts everything at once.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">6:00 PM</span>
+            <span class="changelog-title">Error handling</span>
+          </div>
+          <div class="changelog-desc">Added graceful error handling for sudo operations, cert failures, and daemon communication. Warnings instead of crashes.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">7:00 PM</span>
+            <span class="changelog-title">Trust command</span>
+          </div>
+          <div class="changelog-desc">Added pugloo trust to install the root CA in system keychain. Supports --yes flag and --remove to untrust.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">8:00 PM</span>
+            <span class="changelog-title">npm publish</span>
+          </div>
+          <div class="changelog-desc">Published v0.1.0 to npm. Set up package.json with proper fields, .npmignore, MIT license, and README.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">9:00 PM</span>
+            <span class="changelog-title">Landing page</span>
+          </div>
+          <div class="changelog-desc">Built the pugloo landing page. Light theme, teal accent, terminal demos, feature blocks, and install section.</div>
+        </div>
+      </div>
+
+      <div class="changelog-date">March 10, 2026</div>
+      <div class="changelog-entries">
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">9:00 AM</span>
+            <span class="changelog-title">CLI branding</span>
+          </div>
+          <div class="changelog-desc">Added ASCII art banner displayed when running pugloo with no arguments. Toe beans + pugloo name box.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">10:00 AM</span>
+            <span class="changelog-title">Changelog &amp; deploy</span>
+          </div>
+          <div class="changelog-desc">Added changelog to landing page. Deployed site to Cloudflare Pages.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ CTA / INSTALL ============ -->
 <section id="install" class="cta-section">
   <div class="container">
@@ -689,14 +843,15 @@ footer{
           <li><a href="#how-it-works">How it works</a></li>
           <li><a href="#features">Features</a></li>
           <li><a href="#demo">Demo</a></li>
+          <li><a href="#changelog">Changelog</a></li>
           <li><a href="#install">Install</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Resources</h4>
         <ul>
-          <li><a href="https://github.com/pugloo/pugloo" target="_blank" rel="noopener">Documentation</a></li>
-          <li><a href="https://github.com/pugloo/pugloo" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">Documentation</a></li>
+          <li><a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">GitHub</a></li>
           <li><a href="https://www.npmjs.com/package/pugloo" target="_blank" rel="noopener">npm</a></li>
         </ul>
       </div>
@@ -711,7 +866,7 @@ footer{
     <div class="footer-bottom">
       <span>&copy; 2026 pugloo. All rights reserved.</span>
       <div class="footer-bottom-links">
-        <a href="https://github.com/pugloo/pugloo" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">GitHub</a>
         <a href="https://www.npmjs.com/package/pugloo" target="_blank" rel="noopener">npm</a>
       </div>
     </div>
