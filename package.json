@@ -38,12 +38,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pugloo/pugloo.git"
+    "url": "git+https://github.com/Ani-HQ/pugloo.git"
   },
   "bugs": {
-    "url": "https://github.com/pugloo/pugloo/issues"
+    "url": "https://github.com/Ani-HQ/pugloo/issues"
   },
-  "homepage": "https://github.com/pugloo/pugloo#readme",
+  "homepage": "https://pugloo.ani.computer",
   "dependencies": {
     "commander": "^13.0.0",
     "http-proxy": "^1.18.1",
