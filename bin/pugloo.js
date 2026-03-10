@@ -11,12 +11,16 @@ import statusCommand from '../src/commands/status.js';
 import startCommand from '../src/commands/start.js';
 import stopCommand from '../src/commands/stop.js';
 import trustCommand from '../src/commands/trust.js';
-import { banner } from '../src/colors.js';
+import { banner, art } from '../src/colors.js';
 
 program
   .name('pugloo')
   .description(banner())
-  .version('0.1.0');
+  .version('0.1.0')
+  .action(() => {
+    console.log(art());
+    program.help();
+  });
 
 program.addCommand(mapCommand);
 program.addCommand(unmapCommand);

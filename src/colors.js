@@ -26,3 +26,37 @@ export const symbols = {
 export function banner() {
   return bold(magenta('pugloo')) + dim(' - local HTTPS dev proxy');
 }
+
+export function art() {
+  const inner = 31;
+  const line = (content) => {
+    const padding = inner - content.length;
+    const left = Math.floor(padding / 2);
+    const right = padding - left;
+    return '|' + ' '.repeat(left) + content + ' '.repeat(right) + '|';
+  };
+  const border = '+' + '-'.repeat(inner) + '+';
+  const empty  = '|' + ' '.repeat(inner) + '|';
+  const beans  = '+--+ +--+ +--+ +--+';
+  const walls  = '|  | |  | |  | |  |';
+  const ptop   = '+-------------+';
+  const pmid   = '| p u g l o o |';
+  const pbot   = '+-------------+';
+
+  const lines = [
+    border,
+    empty,
+    line(beans),
+    line(walls),
+    line(beans),
+    empty,
+    line(ptop),
+    line(pmid),
+    line(pbot),
+    empty,
+    line('local HTTPS dev proxy'),
+    empty,
+    border,
+  ];
+  return '\n' + lines.map(l => cyan(l)).join('\n') + '\n';
+}
