@@ -3,6 +3,7 @@ import { green, cyan, bold, symbols, dim, yellow } from '../colors.js';
 import { getMappings, saveMappings } from '../store.js';
 import { removeHost } from '../hosts.js';
 import { ensureDaemon, reloadDaemon } from '../daemon.js';
+import { dropPrivileges } from '../privileges.js';
 
 const unmapCommand = new Command('unmap')
   .description('Remove a domain mapping')
@@ -39,6 +40,9 @@ const unmapCommand = new Command('unmap')
       console.log(`  ${symbols.check} Removed all mappings for ${cyan(hostname)}`);
       console.log(`  ${symbols.check} Removed hosts entry`);
     }
+
+    // Drop root privileges so file operations use the real user's ownership.
+    dropPrivileges();
 
     saveMappings(mappings);
     ensureDaemon();

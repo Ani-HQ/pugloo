@@ -79,6 +79,7 @@ export function stopDaemon() {
   } catch {
     // PID file may already be removed.
   }
+
 }
 
 /**

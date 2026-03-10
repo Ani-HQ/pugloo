@@ -7,6 +7,8 @@ import { getMappings, saveMappings } from '../store.js';
 import { addHost } from '../hosts.js';
 import { generateDomainCert } from '../certs.js';
 import { ensureDaemon, reloadDaemon } from '../daemon.js';
+import { setupPortForwarding, isPortForwardingActive } from '../ports.js';
+import { dropPrivileges } from '../privileges.js';
 
 const upCommand = new Command('up')
   .description('Start services defined in .pugloo.yaml')
@@ -38,9 +40,21 @@ const upCommand = new Command('up')
 
     console.log(`\n${symbols.arrow} Starting ${bold(cyan(domain))} services\n`);
 
-    // Add hosts entry and certs for the base domain
+    // --- Privileged operations (need root) ---
     addHost(domain);
     console.log(`  ${symbols.check} Hosts entry added for ${cyan(domain)}`);
+
+    try {
+      if (!isPortForwardingActive()) {
+        setupPortForwarding();
+      }
+      console.log(`  ${symbols.check} Port forwarding active`);
+    } catch {
+      console.log(`  ${symbols.warn} Could not set up port forwarding ${dim('(requires sudo)')}`);
+    }
+
+    // --- Drop root privileges for remaining file operations ---
+    dropPrivileges();
 
     generateDomainCert(domain);
     console.log(`  ${symbols.check} TLS certificate ready`);
