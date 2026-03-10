@@ -1,0 +1,5 @@
+site/
+.pugloo.yaml
+*.test.js
+.github/
+.git/

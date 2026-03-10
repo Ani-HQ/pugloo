@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pugloo — Clean HTTPS URLs for local development</title>
+<meta name="description" content="pugloo gives you clean HTTPS URLs for local development. Automatic SSL, path-based routing, WebSocket support, and public sharing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;
+  --bg-light:#f8fafc;
+  --bg-dark:#0f172a;
+  --surface:#ffffff;
+  --border:#e2e8f0;
+  --border-light:#f1f5f9;
+  --text:#0f172a;
+  --text-secondary:#475569;
+  --text-muted:#94a3b8;
+  --primary:#0d9488;
+  --primary-dark:#0f766e;
+  --primary-light:#ccfbf1;
+  --primary-glow:rgba(13,148,136,.1);
+  --accent:#f59e0b;
+  --accent-light:#fef3c7;
+  --green:#22c55e;
+  --red:#ef4444;
+  --font-sans:'Inter',system-ui,-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',monospace;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);
+  --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);
+  --shadow-xl:0 20px 25px -5px rgba(0,0,0,.1),0 8px 10px -6px rgba(0,0,0,.1);
+  --radius:12px;
+  --radius-lg:16px;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-sans);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--primary);text-decoration:none;transition:color .2s}
+a:hover{color:var(--primary-dark)}
+
+/* Layout */
+.container{max-width:1120px;margin:0 auto;padding:0 24px}
+section{padding:80px 0}
+@media(max-width:640px){section{padding:56px 0}}
+
+/* Reveal */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:none}
+.reveal-d1{transition-delay:.1s}
+.reveal-d2{transition-delay:.2s}
+.reveal-d3{transition-delay:.3s}
+
+/* ============ NAV ============ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:14px 0;
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid transparent;
+  transition:border-color .3s,box-shadow .3s;
+}
+nav.scrolled{border-bottom-color:var(--border);box-shadow:var(--shadow-sm)}
+nav .container{display:flex;align-items:center;justify-content:space-between}
+.nav-logo{
+  display:flex;align-items:center;gap:10px;
+  font-weight:800;font-size:1.3rem;color:var(--text);letter-spacing:-.03em;
+}
+.nav-logo .logo-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--primary);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;
+  -webkit-text-stroke:0;
+  color:transparent;
+  text-shadow:0 0 0 #fff;
+}
+.nav-links{display:flex;gap:32px;align-items:center}
+.nav-links a{color:var(--text-secondary);font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{
+  background:var(--primary)!important;color:#fff!important;
+  padding:9px 20px;border-radius:8px;font-weight:600;font-size:.9rem;
+  transition:background .2s,transform .15s;
+}
+.nav-cta:hover{background:var(--primary-dark)!important;transform:translateY(-1px)}
+@media(max-width:768px){
+  .nav-links a:not(.nav-cta){display:none}
+}
+
+/* ============ HERO ============ */
+.hero{
+  padding:140px 0 80px;
+  text-align:center;
+  background:linear-gradient(180deg,var(--primary-light) 0%,var(--bg) 100%);
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 16px 6px 10px;border-radius:100px;
+  background:var(--surface);border:1px solid var(--border);
+  box-shadow:var(--shadow-sm);
+  font-size:.82rem;font-weight:600;color:var(--text-secondary);
+  margin-bottom:28px;
+}
+.hero-badge .badge-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 6px rgba(34,197,94,.4);
+}
+.hero h1{
+  font-size:clamp(2.4rem,6vw,4rem);
+  font-weight:900;line-height:1.1;letter-spacing:-.045em;
+  margin-bottom:20px;color:var(--text);
+}
+.hero h1 .highlight{color:var(--primary)}
+.hero-sub{
+  font-size:clamp(1rem,2vw,1.2rem);
+  color:var(--text-secondary);max-width:540px;margin:0 auto 36px;
+  line-height:1.6;
+}
+.hero-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 28px;border-radius:10px;font-weight:600;font-size:1rem;
+  transition:all .2s;cursor:pointer;border:none;font-family:var(--font-sans);
+  text-decoration:none;
+}
+.btn-primary{
+  background:var(--primary);color:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.1),0 4px 12px rgba(13,148,136,.25);
+}
+.btn-primary:hover{background:var(--primary-dark);color:#fff;transform:translateY(-2px);box-shadow:0 4px 16px rgba(13,148,136,.3)}
+.btn-outline{
+  background:var(--surface);color:var(--text);
+  border:1px solid var(--border);
+}
+.btn-outline:hover{border-color:var(--text-muted);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.hero-note{font-size:.82rem;color:var(--text-muted);margin-top:8px}
+
+/* Hero terminal */
+.hero-terminal{
+  max-width:600px;margin:48px auto 0;
+  border-radius:var(--radius-lg);overflow:hidden;
+  background:var(--bg-dark);
+  box-shadow:var(--shadow-xl),0 0 0 1px rgba(0,0,0,.05);
+  text-align:left;
+}
+.term-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:14px 18px;
+  background:rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.term-dot{width:12px;height:12px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-title{flex:1;text-align:center;font-size:.72rem;color:rgba(255,255,255,.3);font-family:var(--font-mono);margin-right:36px}
+.term-body{padding:20px;font-family:var(--font-mono);font-size:.82rem;line-height:1.9;color:rgba(255,255,255,.7)}
+.tc-p{color:rgba(255,255,255,.35)}
+.tc-c{color:rgba(255,255,255,.9)}
+.tc-a{color:#f59e0b}
+.tc-f{color:#2dd4bf}
+.tc-g{color:#34d399}
+.tc-d{color:rgba(255,255,255,.25)}
+.tc-u{color:#f59e0b}
+.tc-h{color:rgba(255,255,255,.3)}
+
+/* ============ STATS ============ */
+.stats{
+  padding:48px 0;
+  border-bottom:1px solid var(--border);
+}
+.stats-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+  text-align:center;
+}
+.stat{padding:20px}
+.stat:not(:last-child){border-right:1px solid var(--border)}
+@media(max-width:640px){
+  .stats-grid{grid-template-columns:1fr}
+  .stat:not(:last-child){border-right:none;border-bottom:1px solid var(--border)}
+}
+.stat-value{font-size:2rem;font-weight:800;color:var(--primary);letter-spacing:-.03em}
+.stat-label{font-size:.9rem;color:var(--text-secondary);margin-top:2px}
+
+/* ============ FEATURE BLOCKS (alternating) ============ */
+.feature-block{padding:80px 0}
+.feature-block:nth-child(even){background:var(--bg-light)}
+.feature-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;
+}
+.feature-row.reverse .feature-visual{order:-1}
+@media(max-width:768px){
+  .feature-row{grid-template-columns:1fr;gap:40px}
+  .feature-row.reverse .feature-visual{order:0}
+}
+.feature-text .label{
+  display:inline-block;
+  font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--primary);
+  background:var(--primary-light);padding:4px 12px;border-radius:6px;
+  margin-bottom:16px;
+}
+.feature-text h2{
+  font-size:clamp(1.6rem,3.5vw,2.2rem);font-weight:800;
+  letter-spacing:-.03em;line-height:1.15;margin-bottom:16px;
+}
+.feature-text p{
+  color:var(--text-secondary);font-size:1.05rem;line-height:1.7;margin-bottom:12px;
+}
+.feature-text ul{list-style:none;margin-top:20px}
+.feature-text ul li{
+  display:flex;align-items:flex-start;gap:10px;
+  color:var(--text-secondary);font-size:.95rem;
+  margin-bottom:10px;line-height:1.5;
+}
+.feature-text ul li .check{
+  flex-shrink:0;color:var(--primary);font-weight:700;margin-top:2px;
+}
+
+/* Feature visual cards */
+.feature-visual .visual-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:32px;
+  box-shadow:var(--shadow-lg);
+}
+.feature-visual .visual-card.dark{
+  background:var(--bg-dark);border-color:rgba(255,255,255,.1);
+  color:rgba(255,255,255,.8);
+}
+.visual-card .mini-term{
+  font-family:var(--font-mono);font-size:.8rem;line-height:1.9;
+}
+.visual-card .mini-term .tc-p{color:rgba(255,255,255,.35)}
+
+/* Code block visual */
+.code-visual{
+  background:var(--bg-dark);border-radius:var(--radius);overflow:hidden;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:var(--shadow-lg);
+}
+.code-visual-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 16px;
+  background:rgba(255,255,255,.05);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.code-visual-bar .filename{
+  flex:1;text-align:center;margin-right:36px;
+  font-family:var(--font-mono);font-size:.72rem;color:rgba(255,255,255,.3);
+}
+.code-visual-body{
+  padding:20px;font-family:var(--font-mono);font-size:.82rem;line-height:1.9;
+  color:rgba(255,255,255,.7);overflow-x:auto;
+}
+.yk{color:#2dd4bf}
+.yv{color:#f59e0b}
+
+/* ============ HOW IT WORKS ============ */
+.how-section{background:var(--bg-light)}
+.section-header{margin-bottom:56px}
+.section-header.center{text-align:center}
+.section-header .label{
+  display:inline-block;
+  font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--primary);margin-bottom:12px;
+}
+.section-header h2{
+  font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;
+  letter-spacing:-.03em;line-height:1.15;margin-bottom:14px;
+}
+.section-header p{color:var(--text-secondary);font-size:1.05rem;max-width:520px;margin:0 auto}
+
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:768px){.steps-grid{grid-template-columns:1fr;max-width:480px;margin:0 auto}}
+.step-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:32px 28px;
+  text-align:center;
+  transition:transform .3s,box-shadow .3s;
+}
+.step-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.step-num{
+  width:48px;height:48px;border-radius:50%;
+  background:var(--primary-light);color:var(--primary);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:1.2rem;margin-bottom:20px;
+}
+.step-card h3{font-size:1.1rem;font-weight:700;margin-bottom:8px}
+.step-card p{color:var(--text-secondary);font-size:.9rem;line-height:1.55}
+.step-card code{
+  font-family:var(--font-mono);font-size:.78rem;
+  background:var(--bg-light);padding:3px 8px;border-radius:6px;
+  border:1px solid var(--border);color:var(--primary-dark);
+}
+
+/* ============ FEATURES GRID ============ */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:800px){.features-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.features-grid{grid-template-columns:1fr}}
+.fcard{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:28px;
+  transition:transform .3s,box-shadow .3s;
+}
+.fcard:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.fcard-icon{
+  width:48px;height:48px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;margin-bottom:18px;
+}
+.fcard-icon.teal{background:var(--primary-light);color:var(--primary)}
+.fcard-icon.amber{background:var(--accent-light);color:var(--accent)}
+.fcard h3{font-size:1rem;font-weight:700;margin-bottom:6px}
+.fcard p{color:var(--text-secondary);font-size:.88rem;line-height:1.6}
+
+/* ============ CTA SECTION ============ */
+.cta-section{
+  background:var(--bg-dark);
+  color:#fff;
+  text-align:center;
+}
+.cta-section h2{
+  font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;
+  letter-spacing:-.03em;margin-bottom:16px;
+}
+.cta-section p{
+  color:rgba(255,255,255,.6);font-size:1.1rem;
+  max-width:480px;margin:0 auto 32px;
+}
+.cta-install{
+  display:inline-flex;align-items:center;gap:16px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--radius);padding:16px 24px;
+  margin-bottom:20px;
+}
+.cta-install code{
+  font-family:var(--font-mono);font-size:1rem;color:rgba(255,255,255,.9);
+}
+.cta-install .copy-btn{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.7);padding:7px 14px;border-radius:8px;
+  font-size:.8rem;font-family:var(--font-sans);font-weight:500;
+  cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;
+}
+.cta-install .copy-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+.cta-install .copy-btn.copied{color:var(--green)}
+.cta-note{font-size:.82rem;color:rgba(255,255,255,.4)}
+
+/* ============ FOOTER ============ */
+footer{
+  border-top:1px solid var(--border);
+  padding:56px 0 40px;
+  background:var(--bg-light);
+}
+.footer-grid{
+  display:grid;grid-template-columns:2fr repeat(3,1fr);gap:40px;
+  margin-bottom:40px;
+}
+@media(max-width:768px){.footer-grid{grid-template-columns:1fr 1fr;gap:32px}}
+@media(max-width:480px){.footer-grid{grid-template-columns:1fr}}
+.footer-brand .nav-logo{margin-bottom:12px}
+.footer-brand p{color:var(--text-muted);font-size:.88rem;max-width:260px;line-height:1.6}
+.footer-col h4{
+  font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--text-muted);margin-bottom:16px;
+}
+.footer-col ul{list-style:none}
+.footer-col ul li{margin-bottom:10px}
+.footer-col ul li a{color:var(--text-secondary);font-size:.9rem;transition:color .2s}
+.footer-col ul li a:hover{color:var(--primary)}
+.footer-bottom{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:24px;border-top:1px solid var(--border);
+  font-size:.82rem;color:var(--text-muted);
+}
+.footer-bottom-links{display:flex;gap:20px}
+.footer-bottom-links a{color:var(--text-muted);transition:color .2s}
+.footer-bottom-links a:hover{color:var(--text-secondary)}
+@media(max-width:480px){
+  .footer-bottom{flex-direction:column;gap:12px;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav id="nav">
+  <div class="container">
+    <a href="#" class="nav-logo">
+      <span class="logo-icon">🐾</span>
+      pugloo
+    </a>
+    <div class="nav-links">
+      <a href="#how-it-works">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#demo">Demo</a>
+      <a href="https://github.com/pugloo/pugloo" target="_blank" rel="noopener">Docs</a>
+      <a href="#install" class="nav-cta">Get Started Free</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="container">
+    <div class="reveal">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Open source &middot; Free forever
+      </div>
+    </div>
+    <h1 class="reveal reveal-d1">
+      Start local HTTPS<br>in <span class="highlight">seconds</span>
+    </h1>
+    <p class="hero-sub reveal reveal-d2">
+      pugloo gives you clean HTTPS URLs for local development. Automatic SSL, path routing, WebSockets, and public tunnels in a single CLI.
+    </p>
+    <div class="hero-buttons reveal reveal-d2">
+      <a href="#install" class="btn btn-primary">Get Started Free</a>
+      <a href="https://github.com/pugloo/pugloo" class="btn btn-outline" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+    <p class="hero-note reveal reveal-d3">Free &middot; No account required &middot; macOS &amp; Linux</p>
+    <div class="reveal reveal-d3">
+      <div class="hero-terminal">
+        <div class="term-bar">
+          <div class="term-dot r"></div>
+          <div class="term-dot y"></div>
+          <div class="term-dot g"></div>
+          <div class="term-title">Terminal</div>
+        </div>
+        <div class="term-body">
+<span class="tc-p">$</span> <span class="tc-c">npm i -g pugloo</span>
+<span class="tc-p">$</span> <span class="tc-c">pugloo map</span> <span class="tc-a">myapp.test</span> <span class="tc-f">3000</span>
+
+<span class="tc-f">➜</span> Mapping <span class="tc-a">myapp.test</span> → localhost:3000
+  <span class="tc-g">✔</span> Mapping saved
+  <span class="tc-g">✔</span> Hosts entry added
+  <span class="tc-g">✔</span> TLS certificate ready
+  <span class="tc-g">✔</span> Proxy reloaded
+<span class="tc-g">✔</span> Done! Visit <span class="tc-u">https://myapp.test</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat reveal">
+        <div class="stat-value">1 command</div>
+        <div class="stat-label">To go from localhost to HTTPS</div>
+      </div>
+      <div class="stat reveal reveal-d1">
+        <div class="stat-value">Auto SSL</div>
+        <div class="stat-label">Trusted certificates, zero config</div>
+      </div>
+      <div class="stat reveal reveal-d2">
+        <div class="stat-value">WebSocket</div>
+        <div class="stat-label">HMR support out of the box</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how-it-works" class="how-section">
+  <div class="container">
+    <div class="section-header center reveal">
+      <div class="label">How it works</div>
+      <h2>Three steps. Zero config.</h2>
+      <p>Go from localhost to a clean HTTPS domain in under 10 seconds.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card reveal">
+        <div class="step-num">1</div>
+        <h3>Map your domain</h3>
+        <p>Run <code>pugloo map myapp.test 3000</code> to connect a .test domain to your local server.</p>
+      </div>
+      <div class="step-card reveal reveal-d1">
+        <div class="step-num">2</div>
+        <h3>Automatic setup</h3>
+        <p>pugloo generates trusted SSL certs and updates your hosts file. Nothing manual.</p>
+      </div>
+      <div class="step-card reveal reveal-d2">
+        <div class="step-num">3</div>
+        <h3>Open in your browser</h3>
+        <p>Visit <code>https://myapp.test</code> and get the full HTTPS experience locally.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURE BLOCK 1: HTTPS ============ -->
+<section class="feature-block" id="demo">
+  <div class="container">
+    <div class="feature-row reveal">
+      <div class="feature-text">
+        <span class="label">No code? No problem</span>
+        <h2>HTTPS that just works. Locally.</h2>
+        <p>pugloo generates a local Certificate Authority on first run and creates per-domain certificates signed by it. Trust the CA once and every .test domain gets a green lock.</p>
+        <ul>
+          <li><span class="check">✓</span> Auto-generated SSL certificates per domain</li>
+          <li><span class="check">✓</span> Wildcard support (*.myapp.test)</li>
+          <li><span class="check">✓</span> One-time <code style="font-family:var(--font-mono);font-size:.85em;background:var(--bg-light);padding:2px 6px;border-radius:4px;border:1px solid var(--border)">pugloo trust</code> to install the CA</li>
+          <li><span class="check">✓</span> Works in Chrome, Firefox, Safari, and curl</li>
+        </ul>
+      </div>
+      <div class="feature-visual">
+        <div class="visual-card dark">
+          <div class="mini-term">
+<span class="tc-p">$</span> <span class="tc-c">pugloo trust</span>
+<span class="tc-f">➜</span> Trusting pugloo root CA...
+  <span class="tc-d">CA path: ~/.pugloo/ca/rootCA.pem</span>
+  <span class="tc-g">✔</span> CA trusted in system keychain
+
+<span class="tc-p">$</span> <span class="tc-c">pugloo map</span> <span class="tc-a">shop.test</span> <span class="tc-f">4000</span>
+  <span class="tc-g">✔</span> TLS certificate ready
+  <span class="tc-g">✔</span> Done! Visit <span class="tc-u">https://shop.test</span> 🔒
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURE BLOCK 2: Routing ============ -->
+<section class="feature-block">
+  <div class="container">
+    <div class="feature-row reverse reveal">
+      <div class="feature-text">
+        <span class="label">For developers</span>
+        <h2>Path-based routing for microservices</h2>
+        <p>Route different paths to different ports on the same domain. Perfect for frontend + API setups, or any multi-service architecture.</p>
+        <ul>
+          <li><span class="check">✓</span> Longest-prefix matching (/api/v2 before /api)</li>
+          <li><span class="check">✓</span> WebSocket proxying for HMR</li>
+          <li><span class="check">✓</span> Works with Vite, Next.js, webpack, and more</li>
+          <li><span class="check">✓</span> Hot reload without extra config</li>
+        </ul>
+      </div>
+      <div class="feature-visual">
+        <div class="visual-card dark">
+          <div class="mini-term">
+<span class="tc-p">$</span> <span class="tc-c">pugloo map</span> <span class="tc-a">app.test</span> <span class="tc-f">3000</span>
+<span class="tc-p">$</span> <span class="tc-c">pugloo map</span> <span class="tc-a">app.test/api</span> <span class="tc-f">8080</span>
+<span class="tc-p">$</span> <span class="tc-c">pugloo map</span> <span class="tc-a">app.test/ws</span> <span class="tc-f">9090</span>
+<span class="tc-p">$</span> <span class="tc-c">pugloo list</span>
+
+<span class="tc-h">DOMAIN             TARGET</span>
+<span class="tc-a">app.test</span>         → localhost:3000
+<span class="tc-a">app.test/api</span>     → localhost:8080
+<span class="tc-a">app.test/ws</span>      → localhost:9090
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURE BLOCK 3: Config ============ -->
+<section class="feature-block">
+  <div class="container">
+    <div class="feature-row reveal">
+      <div class="feature-text">
+        <span class="label">Team workflows</span>
+        <h2>One config file for your whole stack</h2>
+        <p>Drop a <code style="font-family:var(--font-mono);font-size:.9em;background:var(--bg-light);padding:2px 6px;border-radius:4px;border:1px solid var(--border)">.pugloo.yaml</code> in your repo. Define all domains, ports, and startup commands. Then run <code style="font-family:var(--font-mono);font-size:.9em;background:var(--bg-light);padding:2px 6px;border-radius:4px;border:1px solid var(--border)">pugloo up</code> to start everything.</p>
+        <p>Commit it to your repo so every teammate gets the same local setup.</p>
+      </div>
+      <div class="feature-visual">
+        <div class="code-visual">
+          <div class="code-visual-bar">
+            <div class="term-dot r"></div>
+            <div class="term-dot y"></div>
+            <div class="term-dot g"></div>
+            <span class="filename">.pugloo.yaml</span>
+          </div>
+          <div class="code-visual-body">
+<span class="yk">domain</span>: <span class="yv">myapp.test</span>
+
+<span class="yk">services</span>:
+  <span class="yk">/</span>:
+    <span class="yk">port</span>: <span class="yv">3000</span>
+    <span class="yk">command</span>: <span class="yv">npm run dev</span>
+  <span class="yk">/api</span>:
+    <span class="yk">port</span>: <span class="yv">8080</span>
+    <span class="yk">command</span>: <span class="yv">npm run api</span>
+  <span class="yk">/docs</span>:
+    <span class="yk">port</span>: <span class="yv">4000</span>
+    <span class="yk">command</span>: <span class="yv">npm run docs</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES GRID ============ -->
+<section id="features" class="how-section">
+  <div class="container">
+    <div class="section-header center reveal">
+      <div class="label">Features</div>
+      <h2>Everything you need. Nothing you don't.</h2>
+      <p>Professional local development, without the professional headaches.</p>
+    </div>
+    <div class="features-grid">
+      <div class="fcard reveal">
+        <div class="fcard-icon teal">🔒</div>
+        <h3>HTTPS Everywhere</h3>
+        <p>Auto SSL certs with a locally trusted CA. Green lock in every browser. Zero manual setup.</p>
+      </div>
+      <div class="fcard reveal reveal-d1">
+        <div class="fcard-icon amber">🔀</div>
+        <h3>Path-Based Routing</h3>
+        <p>Route /api to one port and / to another. One domain, as many services as you want.</p>
+      </div>
+      <div class="fcard reveal reveal-d2">
+        <div class="fcard-icon teal">⚡</div>
+        <h3>WebSocket Support</h3>
+        <p>HMR works out of the box with Vite, Next.js, webpack. No proxy quirks to debug.</p>
+      </div>
+      <div class="fcard reveal">
+        <div class="fcard-icon amber">📄</div>
+        <h3>Project Config</h3>
+        <p>Define your whole stack in .pugloo.yaml. Commit it. Everyone gets the same local setup.</p>
+      </div>
+      <div class="fcard reveal reveal-d1">
+        <div class="fcard-icon teal">🌐</div>
+        <h3>Public Sharing</h3>
+        <p>Run pugloo share to get a public URL. Perfect for demos, testing webhooks, or quick feedback.</p>
+      </div>
+      <div class="fcard reveal reveal-d2">
+        <div class="fcard-icon amber">👻</div>
+        <h3>Background Daemon</h3>
+        <p>Runs quietly. Mappings persist across restarts. Start it and forget about it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA / INSTALL ============ -->
+<section id="install" class="cta-section">
+  <div class="container">
+    <h2 class="reveal">Start a free trial.<br>Just kidding. It's free forever.</h2>
+    <p class="reveal reveal-d1">Install pugloo in one command and start mapping domains.</p>
+    <div class="reveal reveal-d2">
+      <div class="cta-install">
+        <code><span class="tc-p">$</span> npm install -g pugloo</code>
+        <button class="copy-btn" data-copy="npm install -g pugloo" onclick="copyText(this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>Copy</span>
+        </button>
+      </div>
+    </div>
+    <p class="cta-note reveal reveal-d3">Works on macOS &amp; Linux &middot; Requires Node.js 18+</p>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="nav-logo">
+          <span class="logo-icon">🐾</span>
+          pugloo
+        </div>
+        <p>Clean HTTPS URLs for local development. Open source. Free forever.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#demo">Demo</a></li>
+          <li><a href="#install">Install</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="https://github.com/pugloo/pugloo" target="_blank" rel="noopener">Documentation</a></li>
+          <li><a href="https://github.com/pugloo/pugloo" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://www.npmjs.com/package/pugloo" target="_blank" rel="noopener">npm</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 pugloo. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="https://github.com/pugloo/pugloo" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.npmjs.com/package/pugloo" target="_blank" rel="noopener">npm</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('scrolled',window.scrollY>20);
+},{passive:true});
+
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+function copyText(btn){
+  const t=btn.getAttribute('data-copy');
+  navigator.clipboard.writeText(t).then(()=>{
+    btn.classList.add('copied');
+    btn.querySelector('span').textContent='Copied!';
+    setTimeout(()=>{btn.classList.remove('copied');btn.querySelector('span').textContent='Copy'},2000);
+  });
+}
+</script>
+</body>
+</html>
