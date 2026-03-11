@@ -89,4 +89,9 @@ npm run hooks:install
 This installs a `post-commit` hook in this repository only. After each commit it runs:
 
 - `scripts/post-commit-clockwork.mjs` to refresh `.cursor/context/last-commit.md`
-- Auto commit feed sync in `docs/changelog.html`
+
+To refresh the HTML changelog commit feed when you want to publish docs updates:
+
+```bash
+npm run clockwork:sync:changelog
+```

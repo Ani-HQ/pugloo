@@ -69,7 +69,8 @@
 
     <p>
       This guide shows how to make commit metadata available to Cursor automatically, project by project, with no global setup.
-      We pair a git post-commit hook with a lightweight Node.js script that writes a local context file and updates an HTML commit feed.
+      We pair a git post-commit hook with a lightweight Node.js script that writes a local context file.
+      We keep changelog feed sync as an explicit docs command to avoid dirty trees after every commit.
       The result is predictable, transparent, and easy to maintain.
     </p>
 
@@ -79,7 +80,7 @@
   A[git commit] --> B[post-commit hook]
   B --> C[scripts/post-commit-clockwork.mjs]
   C --> D[.cursor/context/last-commit.md]
-  C --> E[docs/changelog.html auto feed]
+  H[npm run clockwork:sync:changelog] --> E[docs/changelog.html auto feed]
   D --> F[Cursor reads local context rule]
   E --> G[Team sees latest commit stream]
       </pre>
@@ -88,18 +89,20 @@
     <h2>What gets generated</h2>
     <ul>
       <li><code>.cursor/context/last-commit.md</code> with hash, subject, author, date, commit body, and changed files.</li>
-      <li><code>docs/changelog.html</code> commit list between marker comments, refreshed after each commit.</li>
+      <li><code>docs/changelog.html</code> commit list between marker comments, refreshed by <code>clockwork:sync:changelog</code>.</li>
       <li>A local rule in <code>.cursor/rules/clockwork-context.mdc</code> so Cursor can prioritize this context.</li>
     </ul>
 
     <h2>Implementation notes</h2>
     <div class="card">
       <pre><code>npm run hooks:install
-npm run clockwork:sync</code></pre>
+npm run clockwork:sync
+npm run clockwork:sync:changelog</code></pre>
     </div>
     <p>
       The install step writes <code>.git/hooks/post-commit</code> only in this repository.
-      The sync command can be used manually to verify output before your next commit.
+      The sync command refreshes local Cursor context.
+      The changelog sync command is explicit so routine commits stay clean.
     </p>
 
     <h2>SEO and GEO strategy</h2>
@@ -120,15 +123,15 @@ npm run clockwork:sync</code></pre>
   participant Cursor as Cursor context
   Dev->>Git: commit
   Git->>Hook: trigger
-  Hook->>Docs: refresh feed block
   Hook->>Cursor: write last-commit.md
+  Dev->>Docs: run changelog sync command
   Cursor-->>Dev: updated local context on next task
       </pre>
     </div>
 
     <p>
-      If you want stricter automation, you can fail the hook when markers are missing in the changelog page.
-      In this repo we keep it non-blocking so commit flow stays fast.
+      If you want stricter automation, you can run changelog sync in CI for docs branches.
+      In this repo the post-commit hook stays fast and non-mutating for tracked files.
     </p>
   </main>
 
