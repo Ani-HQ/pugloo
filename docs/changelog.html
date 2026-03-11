@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pugloo changelog</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --accent: #0d9488;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 32px 20px 72px;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .home-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      line-height: 1.2;
+    }
+    .subtitle {
+      margin: 0 0 26px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .version {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 18px 14px;
+      margin-bottom: 14px;
+    }
+    .version h2 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+    }
+    .version ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .footer-note {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="top">
+      <a class="home-link" href="/">← Back to homepage</a>
+    </div>
+    <h1>Full Changelog</h1>
+    <p class="subtitle">All notable changes to pugloo are tracked below. This page is the full history, while the homepage only shows the latest 5 points.</p>
+
+    <section class="version">
+      <h2>0.1.5 - 2026-03-11</h2>
+      <ul>
+        <li>Published <code>v0.1.5</code> to npm.</li>
+        <li>Fixed local <code>.test</code> domains hanging by normalizing <code>{ port }</code> mappings into upstream proxy targets.</li>
+        <li>Stabilized macOS port forwarding by loading PF rules into a dedicated anchor instead of replacing the main ruleset.</li>
+        <li>Improved CLI behavior for <code>start</code>, <code>map</code>, and <code>up</code> by ensuring port forwarding setup is attempted consistently.</li>
+        <li>Added regression tests for proxy route normalization.</li>
+      </ul>
+    </section>
+
+    <p class="footer-note">
+      Source of truth: <a href="https://github.com/Ani-HQ/pugloo/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md on GitHub</a>.
+    </p>
+  </main>
+</body>
+</html>

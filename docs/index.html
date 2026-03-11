@@ -441,7 +441,7 @@ footer{
       <a href="#features">Features</a>
       <a href="#demo">Demo</a>
       <a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">Docs</a>
-      <a href="#changelog">Changelog</a>
+      <a href="/changelog.html">Changelog</a>
       <a href="#install" class="nav-cta">Get Started Free</a>
     </div>
   </div>
@@ -695,170 +695,50 @@ footer{
   <div class="container">
     <div class="section-header center reveal">
       <div class="label">Changelog</div>
-      <h2>Built in public. Updated constantly.</h2>
-      <p>Follow the development of pugloo from day one.</p>
+      <h2>Recent updates</h2>
+      <p>The latest 5 release points. See the full changelog for complete history.</p>
     </div>
     <div class="changelog reveal">
-      <div class="changelog-date">March 9, 2026</div>
+      <div class="changelog-date">March 11, 2026</div>
       <div class="changelog-entries">
         <div class="changelog-entry">
           <div class="changelog-entry-header">
-            <span class="changelog-time">10:00 AM</span>
-            <span class="changelog-title">Project kickoff</span>
+            <span class="changelog-time">5:30 PM</span>
+            <span class="changelog-title">Released v0.1.5</span>
           </div>
-          <div class="changelog-desc">Initial project scaffolding. Set up Node.js project with commander, http-proxy, node-forge, js-yaml, and ws dependencies.</div>
+          <div class="changelog-desc">Published v0.1.5 with local routing and forwarding reliability fixes.</div>
         </div>
         <div class="changelog-entry">
           <div class="changelog-entry-header">
-            <span class="changelog-time">11:00 AM</span>
-            <span class="changelog-title">Core proxy engine</span>
+            <span class="changelog-time">5:10 PM</span>
+            <span class="changelog-title">Fixed hanging .test routes</span>
           </div>
-          <div class="changelog-desc">Built the HTTPS reverse proxy with SNI support, longest-prefix path matching, and automatic HTTP-to-HTTPS redirect.</div>
+          <div class="changelog-desc">Normalized `{ port }` mappings into upstream proxy targets so mapped domains load correctly.</div>
         </div>
         <div class="changelog-entry">
           <div class="changelog-entry-header">
-            <span class="changelog-time">12:00 PM</span>
-            <span class="changelog-title">Certificate authority</span>
+            <span class="changelog-time">4:50 PM</span>
+            <span class="changelog-title">Stabilized macOS forwarding</span>
           </div>
-          <div class="changelog-desc">Implemented root CA generation and per-domain SSL certificate creation using node-forge. Certs stored at ~/.pugloo/.</div>
+          <div class="changelog-desc">Switched PF rule setup to a dedicated anchor instead of replacing the main ruleset.</div>
         </div>
         <div class="changelog-entry">
           <div class="changelog-entry-header">
-            <span class="changelog-time">1:00 PM</span>
-            <span class="changelog-title">System integration</span>
+            <span class="changelog-time">4:25 PM</span>
+            <span class="changelog-title">Improved CLI flow</span>
           </div>
-          <div class="changelog-desc">Added /etc/hosts management, port forwarding via pfctl (macOS) and iptables (Linux), and persistent mapping storage.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">2:00 PM</span>
-            <span class="changelog-title">CLI commands</span>
-          </div>
-          <div class="changelog-desc">Built all 9 CLI commands: map, unmap, up, down, list, share, status, start, stop. Colorful terminal output with ANSI codes.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">3:00 PM</span>
-            <span class="changelog-title">Background daemon</span>
-          </div>
-          <div class="changelog-desc">Implemented daemon process management with fork, PID tracking, SIGHUP-based config reload, and graceful shutdown.</div>
+          <div class="changelog-desc">`start`, `map`, and `up` now consistently attempt forwarding setup for cleaner first-run behavior.</div>
         </div>
         <div class="changelog-entry">
           <div class="changelog-entry-header">
             <span class="changelog-time">4:00 PM</span>
-            <span class="changelog-title">WebSocket tunneling</span>
+            <span class="changelog-title">Added regression coverage</span>
           </div>
-          <div class="changelog-desc">Added public sharing via WebSocket tunnels. Client connects to tunnel server, receives public URL, proxies requests locally.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">5:00 PM</span>
-            <span class="changelog-title">Project config</span>
-          </div>
-          <div class="changelog-desc">Added .pugloo.yaml support. Define domain, service ports, and startup commands. pugloo up starts everything at once.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">6:00 PM</span>
-            <span class="changelog-title">Error handling</span>
-          </div>
-          <div class="changelog-desc">Added graceful error handling for sudo operations, cert failures, and daemon communication. Warnings instead of crashes.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">7:00 PM</span>
-            <span class="changelog-title">Trust command</span>
-          </div>
-          <div class="changelog-desc">Added pugloo trust to install the root CA in system keychain. Supports --yes flag and --remove to untrust.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">8:00 PM</span>
-            <span class="changelog-title">npm publish</span>
-          </div>
-          <div class="changelog-desc">Published v0.1.0 to npm. Set up package.json with proper fields, .npmignore, MIT license, and README.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">9:00 PM</span>
-            <span class="changelog-title">Landing page</span>
-          </div>
-          <div class="changelog-desc">Built the pugloo landing page. Light theme, teal accent, terminal demos, feature blocks, and install section.</div>
+          <div class="changelog-desc">Added tests for route normalization to prevent regressions in proxy target resolution.</div>
         </div>
       </div>
-
-      <div class="changelog-date">March 10, 2026</div>
-      <div class="changelog-entries">
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">9:00 AM</span>
-            <span class="changelog-title">CLI branding</span>
-          </div>
-          <div class="changelog-desc">Added ASCII art banner displayed when running pugloo with no arguments. Toe beans + pugloo name box.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">10:00 AM</span>
-            <span class="changelog-title">Changelog &amp; deploy</span>
-          </div>
-          <div class="changelog-desc">Added changelog to landing page. Deployed site to Cloudflare Pages.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">11:00 AM</span>
-            <span class="changelog-title">Project conventions</span>
-          </div>
-          <div class="changelog-desc">Added CLAUDE.md with branching rules, commit conventions, and code style guidelines for contributors.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">12:30 PM</span>
-            <span class="changelog-title">Fix daemon crash on startup</span>
-          </div>
-          <div class="changelog-desc">Fixed a property name mismatch in getCertPaths() that returned certPath/keyPath but the proxy expected cert/key. This caused the daemon to crash silently on every start.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">1:15 PM</span>
-            <span class="changelog-title">Fix root-owned file permissions</span>
-          </div>
-          <div class="changelog-desc">Running pugloo map with sudo created certs owned by root, making them unreadable by the daemon. Added privilege dropping so only /etc/hosts writes run as root.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">2:45 PM</span>
-            <span class="changelog-title">Privilege management</span>
-          </div>
-          <div class="changelog-desc">New privileges module detects sudo context and drops back to the real user for cert generation, mapping storage, and daemon management. Applied to map, unmap, and up commands.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">4:00 PM</span>
-            <span class="changelog-title">Automatic port forwarding</span>
-          </div>
-          <div class="changelog-desc">Port forwarding (443 → 10443, 80 → 10080) is now set up automatically when the daemon starts. No more manual pfctl commands.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">5:00 PM</span>
-            <span class="changelog-title">Port forwarding teardown</span>
-          </div>
-          <div class="changelog-desc">pugloo stop now removes pfctl/iptables rules automatically. Status command shows port forwarding state alongside daemon and mapping info.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">6:00 PM</span>
-            <span class="changelog-title">Interactive sudo prompts</span>
-          </div>
-          <div class="changelog-desc">Port forwarding commands now use stdio inherit so sudo can prompt for a password in the terminal. Skips sudo prefix when already running as root.</div>
-        </div>
-        <div class="changelog-entry">
-          <div class="changelog-entry-header">
-            <span class="changelog-time">7:15 PM</span>
-            <span class="changelog-title">Plug-and-play experience</span>
-          </div>
-          <div class="changelog-desc">One command does everything: pugloo map myapp.test 3000 now handles hosts, certs, port forwarding, and daemon startup. No manual setup steps required.</div>
-        </div>
+      <div style="margin-top:20px;padding-left:28px;">
+        <a href="/changelog.html" class="btn btn-outline">View Full Changelog</a>
       </div>
     </div>
   </div>
@@ -899,7 +779,7 @@ footer{
           <li><a href="#how-it-works">How it works</a></li>
           <li><a href="#features">Features</a></li>
           <li><a href="#demo">Demo</a></li>
-          <li><a href="#changelog">Changelog</a></li>
+          <li><a href="/changelog.html">Changelog</a></li>
           <li><a href="#install">Install</a></li>
         </ul>
       </div>
