@@ -6,10 +6,11 @@ import { generateDomainCert } from '../certs.js';
 import { ensureDaemon, reloadDaemon } from '../daemon.js';
 import { setupPortForwarding, isPortForwardingActive } from '../ports.js';
 import { dropPrivileges } from '../privileges.js';
+import { validateHostname } from '../domain.js';
 
 const mapCommand = new Command('map')
-  .description('Map a .test domain to a local port')
-  .argument('<domain>', 'Domain to map (e.g. myapp.test or myapp.test/api)')
+  .description('Map a local domain to a local port')
+  .argument('<domain>', 'Domain to map (e.g. myapp.dev or myapp.dev/api)')
   .argument('<target>', 'Local port number to proxy to')
   .action(async (domain, target) => {
     const port = parseInt(target, 10);
@@ -23,8 +24,9 @@ const mapCommand = new Command('map')
     const hostname = slashIndex === -1 ? domain : domain.slice(0, slashIndex);
     const pathPrefix = slashIndex === -1 ? '/' : domain.slice(slashIndex);
 
-    if (!hostname.endsWith('.test')) {
-      console.error(`${symbols.cross} Domain must end with ${bold('.test')} (got ${bold(hostname)})`);
+    const validation = validateHostname(hostname);
+    if (!validation.valid) {
+      console.error(`${symbols.cross} Invalid domain ${bold(hostname)}: ${validation.reason}`);
       process.exit(1);
     }
 

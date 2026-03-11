@@ -1,0 +1,15 @@
+---
+description: Use commit context and strict writing style
+alwaysApply: true
+---
+
+# Commit Context First
+
+- At the start of work, read `.cursor/context/last-commit.md` when it exists.
+- Treat it as the latest repo state signal after the most recent commit.
+
+# Writing Constraints
+
+- Do not use em dash characters.
+- Do not use arrow symbols in prose.
+- Prefer plain, direct sentences.

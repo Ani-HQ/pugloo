@@ -9,6 +9,7 @@ import { generateDomainCert } from '../certs.js';
 import { ensureDaemon, reloadDaemon } from '../daemon.js';
 import { setupPortForwarding, isPortForwardingActive } from '../ports.js';
 import { dropPrivileges } from '../privileges.js';
+import { validateHostname } from '../domain.js';
 
 const upCommand = new Command('up')
   .description('Start services defined in .pugloo.yaml')
@@ -33,8 +34,9 @@ const upCommand = new Command('up')
 
     const { domain, services } = config;
 
-    if (!domain.endsWith('.test')) {
-      console.error(`${symbols.cross} Domain must end with ${bold('.test')}`);
+    const validation = validateHostname(domain);
+    if (!validation.valid) {
+      console.error(`${symbols.cross} Invalid domain ${bold(domain)}: ${validation.reason}`);
       process.exit(1);
     }
 

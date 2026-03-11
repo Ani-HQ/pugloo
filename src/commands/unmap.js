@@ -7,7 +7,7 @@ import { dropPrivileges } from '../privileges.js';
 
 const unmapCommand = new Command('unmap')
   .description('Remove a domain mapping')
-  .argument('<domain>', 'Domain to unmap (e.g. myapp.test or myapp.test/api)')
+  .argument('<domain>', 'Domain to unmap (e.g. myapp.dev or myapp.dev/api)')
   .action(async (domain) => {
     const slashIndex = domain.indexOf('/');
     const hostname = slashIndex === -1 ? domain : domain.slice(0, slashIndex);

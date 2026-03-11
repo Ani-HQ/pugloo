@@ -37,7 +37,7 @@ export function saveMappings(mappings) {
 /**
  * Add a single mapping entry.
  *
- * @param {string} domain - The domain name (e.g. "myapp.test")
+ * @param {string} domain - The domain name (e.g. "myapp.dev")
  * @param {string} path - The URL path (e.g. "/" or "/api")
  * @param {*} target - The target value (port number, config object, etc.)
  */

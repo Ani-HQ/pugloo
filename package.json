@@ -13,7 +13,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "clockwork:sync": "node scripts/post-commit-clockwork.mjs",
+    "hooks:install": "node scripts/install-git-hooks.mjs"
   },
   "keywords": [
     "https",

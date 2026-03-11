@@ -5,7 +5,7 @@ import { shareDomain, stopSharing } from '../tunnel.js';
 
 const shareCommand = new Command('share')
   .description('Expose a local domain publicly via tunnel')
-  .argument('<domain>', 'Domain to share (e.g. myapp.test)')
+  .argument('<domain>', 'Domain to share (e.g. myapp.dev)')
   .action(async (domain) => {
     const mappings = getMappings();
 

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stacktrace | pugloo engineering notes</title>
+  <meta name="description" content="Stacktrace is the pugloo engineering route for deep technical notes, commit automation workflows, and local HTTPS infrastructure insights.">
+  <meta name="keywords" content="pugloo, local https, git hook, post-commit, developer tooling, nodejs, docs, engineering blog">
+  <link rel="canonical" href="https://pugloo.ani.computer/stacktrace/">
+  <style>
+    :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#475569; --border:#e2e8f0; --accent:#0d9488; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+    main { max-width: 920px; margin: 0 auto; padding: 32px 20px 72px; }
+    .top { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    h1 { margin: 0 0 8px; font-size: 2.1rem; }
+    .subtitle { margin: 0 0 22px; color: var(--muted); line-height: 1.55; }
+    .post {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+    .meta { font-size: 0.86rem; color: var(--muted); margin-bottom: 8px; }
+    .post h2 { margin: 0 0 8px; font-size: 1.2rem; }
+    .post p { margin: 0 0 10px; color: var(--muted); line-height: 1.55; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <a href="/">Back to homepage</a>
+      <a href="/changelog.html">Open changelog</a>
+    </div>
+    <h1>Stacktrace</h1>
+    <p class="subtitle">
+      Technical deep dives for pugloo internals. Focused notes, practical architecture, and commit-driven automation patterns for local development teams.
+    </p>
+
+    <article class="post">
+      <div class="meta">Published 2026-03-11 · Tooling · Automation</div>
+      <h2><a href="/stacktrace/clockwork-commit-context.html">Clockwork Commit Context for Cursor in a Node.js Monorepo</a></h2>
+      <p>Build a post-commit automation loop that refreshes Cursor context and updates your changelog feed with zero manual steps.</p>
+    </article>
+  </main>
+</body>
+</html>
