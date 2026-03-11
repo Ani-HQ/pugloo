@@ -5,6 +5,7 @@ import { homedir } from "node:os";
 
 const PUGLOO_DIR = join(homedir(), ".pugloo");
 const PF_CONF = join(PUGLOO_DIR, "pf.conf");
+const PF_ANCHOR = "com.apple/250.pugloo";
 
 const PF_RULES = `rdr pass on lo0 inet proto tcp from any to 127.0.0.1 port 80 -> 127.0.0.1 port 10080
 rdr pass on lo0 inet proto tcp from any to 127.0.0.1 port 443 -> 127.0.0.1 port 10443
@@ -15,23 +16,45 @@ const IPTABLES_RULES = [
   { from: 443, to: 10443 },
 ];
 
+function commandWithPrivilege(cmd) {
+  return typeof process.geteuid === "function" && process.geteuid() === 0
+    ? cmd
+    : `sudo ${cmd}`;
+}
+
 function ensureDir() {
   mkdirSync(PUGLOO_DIR, { recursive: true });
 }
 
-const sudo = process.getuid() === 0 ? "" : "sudo ";
+function combinedErrorOutput(err) {
+  const stdout = err?.stdout ? String(err.stdout) : "";
+  const stderr = err?.stderr ? String(err.stderr) : "";
+  return `${stdout}\n${stderr}`;
+}
 
 // --- macOS (pfctl) ---
 
 function setupPf() {
   ensureDir();
   writeFileSync(PF_CONF, PF_RULES, "utf-8");
-  execSync(`${sudo}pfctl -ef ${PF_CONF}`, { stdio: "inherit" });
+
+  // Enable PF if needed. If it's already enabled, continue.
+  try {
+    execSync(commandWithPrivilege("pfctl -E"), { stdio: "pipe" });
+  } catch (err) {
+    if (!combinedErrorOutput(err).includes("pf already enabled")) {
+      throw err;
+    }
+  }
+
+  // Load redirect rules into a dedicated anchor instead of replacing the
+  // main ruleset. This avoids macOS warnings/failures around `pfctl -f`.
+  execSync(commandWithPrivilege(`pfctl -a ${PF_ANCHOR} -f ${PF_CONF}`), { stdio: "pipe" });
 }
 
 function removePf() {
   try {
-    execSync(`${sudo}pfctl -F all -f /etc/pf.conf`, { stdio: "inherit" });
+    execSync(commandWithPrivilege(`pfctl -a ${PF_ANCHOR} -F all`), { stdio: "pipe" });
   } catch {
     // pf may not have been active
   }
@@ -39,7 +62,7 @@ function removePf() {
 
 function isPfActive() {
   try {
-    const output = execSync(`pfctl -s rules 2>/dev/null`, {
+    const output = execSync(`pfctl -a ${PF_ANCHOR} -s rules 2>/dev/null`, {
       encoding: "utf-8",
     });
     return output.includes("10080") || output.includes("10443");
@@ -51,7 +74,7 @@ function isPfActive() {
 // --- Linux (iptables) ---
 
 function iptablesCmd(action, from, to) {
-  return `${sudo}iptables -t nat ${action} OUTPUT -p tcp --dport ${from} -j REDIRECT --to-port ${to}`;
+  return `${commandWithPrivilege("iptables")} -t nat ${action} OUTPUT -p tcp --dport ${from} -j REDIRECT --to-port ${to}`;
 }
 
 function setupIptables() {

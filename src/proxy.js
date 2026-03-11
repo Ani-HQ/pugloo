@@ -54,12 +54,41 @@ function resolveTarget(hostname, url) {
 
   for (const prefix of pathEntries) {
     if (url === prefix || url.startsWith(prefix === '/' ? '/' : prefix + '/') || url.startsWith(prefix + '?')) {
-      return domainMap[prefix];
+      return normalizeRoute(domainMap[prefix]);
     }
   }
 
   // Fall back to "/" if nothing else matched
-  if (domainMap['/']) return domainMap['/'];
+  if (domainMap['/']) return normalizeRoute(domainMap['/']);
+
+  return null;
+}
+
+export function normalizeRoute(route) {
+  if (route == null) return null;
+
+  // Legacy numeric form: 3000
+  if (typeof route === 'number') {
+    return { target: `http://127.0.0.1:${route}` };
+  }
+
+  // Legacy string form: "3000" or full URL
+  if (typeof route === 'string') {
+    if (route.startsWith('http://') || route.startsWith('https://')) {
+      return { target: route };
+    }
+    const port = parseInt(route, 10);
+    if (!Number.isNaN(port)) {
+      return { target: `http://127.0.0.1:${port}` };
+    }
+    return null;
+  }
+
+  // Current object forms: { port } or { target }
+  if (typeof route === 'object') {
+    if (route.target) return route;
+    if (route.port) return { ...route, target: `http://127.0.0.1:${route.port}` };
+  }
 
   return null;
 }

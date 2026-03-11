@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import { bold, green, cyan, dim, symbols } from '../colors.js';
 import { startDaemon, isDaemonRunning, getDaemonPid } from '../daemon.js';
 import { setupPortForwarding, isPortForwardingActive } from '../ports.js';
-
 const startCommand = new Command('start')
   .description('Start the pugloo proxy daemon')
   .action(() => {
