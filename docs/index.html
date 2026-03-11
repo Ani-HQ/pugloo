@@ -425,6 +425,15 @@ footer{
 }
 .changelog-title{font-size:.95rem;font-weight:700;color:var(--text)}
 .changelog-desc{font-size:.85rem;color:var(--text-secondary);line-height:1.5}
+.changelog-link{
+  display:inline-block;
+  margin-top:10px;
+  font-size:.85rem;
+  color:var(--text-secondary);
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
+.changelog-link:hover{color:var(--primary)}
 </style>
 </head>
 <body>
@@ -739,8 +748,8 @@ footer{
         </div>
       </div>
       <div style="margin-top:20px;padding-left:28px;">
-        <a href="/changelog.html" class="btn btn-outline">View Full Changelog</a>
-        <a href="/stacktrace/" class="btn btn-outline" style="margin-left:8px;">Read Stacktrace</a>
+        <a href="/changelog.html" class="changelog-link">View full changelog</a>
+        <a href="/stacktrace/" class="changelog-link" style="margin-left:12px;">Read Stacktrace</a>
       </div>
     </div>
   </div>
