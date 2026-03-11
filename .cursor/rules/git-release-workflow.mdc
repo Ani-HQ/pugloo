@@ -1,0 +1,19 @@
+---
+description: Enforce branch-first release workflow for every change
+alwaysApply: true
+---
+
+# Mandatory Git Workflow
+
+- Before any code edit, start from `main` and create a new branch.
+- Branch names must use one of: `feat/*`, `fix/*`, `chore/*`, `docs/*`.
+- Make scoped commits with conventional commit subjects.
+- Push the branch to origin.
+- Open a pull request to `main` for every change.
+
+# Versioning and Release Rules
+
+- Use semantic versioning for release changes.
+- For npm publishes, bump `package.json` and `package-lock.json` version first.
+- Create release tags in the `vX.Y.Z` format.
+- Prefer tagging the merge commit on `main`.
