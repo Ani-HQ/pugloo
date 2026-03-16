@@ -30,9 +30,13 @@ export function validateHostname(hostname) {
     if (!/^[a-zA-Z0-9-]+$/.test(label)) {
       return { valid: false, reason: "Domain can only contain letters, numbers, hyphens, and dots." };
     }
-    if (label.startsWith("-") || label.endsWith("-")) {
-      return { valid: false, reason: "Domain labels cannot start or end with a hyphen." };
-    }
+  if (label.startsWith("-") || label.endsWith("-")) {
+    return { valid: false, reason: "Domain labels cannot start or end with a hyphen." };
+  }
+  }
+
+  if (hostname.endsWith(".local")) {
+    return { valid: true, warn: ".local is reserved for mDNS and can cause slow DNS resolution." };
   }
 
   return { valid: true };

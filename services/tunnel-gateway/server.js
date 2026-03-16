@@ -1,13 +1,8 @@
 /**
- * Standalone tunnel server that can be deployed separately.
+ * Tunnel gateway - accepts WebSocket connections from pugloo CLI and routes
+ * incoming HTTP requests to the appropriate connected client.
  *
- * Accepts WebSocket connections from pugloo clients and routes incoming HTTP
- * requests to the appropriate connected client based on subdomain.
- *
- * Subdomain routing: <id>.tunnel.pugloo.dev
- *
- * Usage:
- *   TUNNEL_HOST=tunnel.pugloo.dev PORT=8080 node src/tunnel-server.js
+ * Cloud Run: PORT is set automatically.
  */
 
 import { createServer } from "node:http";
@@ -17,19 +12,8 @@ import { WebSocketServer } from "ws";
 const PORT = parseInt(process.env.PORT || "8080", 10);
 const TUNNEL_HOST = process.env.TUNNEL_HOST || "tunnel.pugloo.dev";
 
-/**
- * Map of subdomain -> { ws, domain, password, timer }
- */
 const clients = new Map();
-
-/**
- * Map of requestId -> { res }  (pending HTTP responses waiting for tunnel reply)
- */
 const pendingRequests = new Map();
-
-// ---------------------------------------------------------------------------
-// HTTP server — receives public requests and forwards them through tunnels
-// ---------------------------------------------------------------------------
 
 const httpServer = createServer((req, res) => {
   const host = (req.headers.host || "").toLowerCase();
@@ -43,7 +27,6 @@ const httpServer = createServer((req, res) => {
     return;
   }
 
-  // Check password via query param if the tunnel is protected.
   if (client.password) {
     const url = new URL(req.url, `http://${host}`);
     if (url.searchParams.get("_pw") !== client.password) {
@@ -55,7 +38,6 @@ const httpServer = createServer((req, res) => {
 
   const requestId = randomBytes(8).toString("hex");
 
-  // Collect the request body.
   const chunks = [];
   req.on("data", (chunk) => chunks.push(chunk));
   req.on("end", () => {
@@ -63,7 +45,6 @@ const httpServer = createServer((req, res) => {
 
     pendingRequests.set(requestId, { res });
 
-    // Time out after 30 seconds.
     const timeout = setTimeout(() => {
       if (pendingRequests.has(requestId)) {
         pendingRequests.delete(requestId);
@@ -93,10 +74,6 @@ const httpServer = createServer((req, res) => {
     }
   });
 });
-
-// ---------------------------------------------------------------------------
-// WebSocket server — accepts tunnel client connections
-// ---------------------------------------------------------------------------
 
 const wss = new WebSocketServer({ server: httpServer });
 
@@ -128,7 +105,6 @@ wss.on("connection", (ws) => {
         timer: null,
       };
 
-      // Set up TTL if requested.
       if (msg.ttl && typeof msg.ttl === "number") {
         entry.timer = setTimeout(() => {
           ws.close();
@@ -165,12 +141,6 @@ wss.on("connection", (ws) => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Start
-// ---------------------------------------------------------------------------
-
 httpServer.listen(PORT, () => {
-  console.log(`Tunnel server listening on :${PORT} (host: ${TUNNEL_HOST})`);
+  console.log(`Tunnel gateway listening on :${PORT} (host: ${TUNNEL_HOST})`);
 });
-
-export { httpServer, wss, clients };

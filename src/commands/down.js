@@ -9,8 +9,9 @@ import { ensureDaemon, reloadDaemon } from '../daemon.js';
 
 const downCommand = new Command('down')
   .description('Stop services defined in .pugloo.yaml')
-  .action(async () => {
-    const configPath = resolve(process.cwd(), '.pugloo.yaml');
+  .option('-c, --config <path>', 'Path to config file (default: .pugloo.yaml)')
+  .action(async (opts) => {
+    const configPath = resolve(process.cwd(), opts.config || '.pugloo.yaml');
     let raw;
 
     try {

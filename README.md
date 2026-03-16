@@ -11,17 +11,22 @@ npm i -g pugloo
 ## Quick start
 
 ```bash
-# Map a domain to a local port
-sudo pugloo map myapp.dev 3000
+# Start a domain mapping (myapp.test -> localhost:3000)
+sudo pugloo start myapp --port 3000
+
+# Or map explicitly
+sudo pugloo map myapp.test 3000
 
 # List active mappings
 pugloo list
+pugloo list --json
 
 # Start services from a .pugloo.yaml config
 sudo pugloo up
+sudo pugloo up --config /path/to/.pugloo.yaml
 ```
 
-Then visit `https://myapp.dev` in your browser.
+Then visit `https://myapp.test` in your browser.
 
 ## Features
 
@@ -39,7 +44,7 @@ Then visit `https://myapp.dev` in your browser.
 Create a `.pugloo.yaml` in your project root:
 
 ```yaml
-domain: myapp.dev
+domain: myapp.test
 services:
   /:
     port: 3000
@@ -47,6 +52,8 @@ services:
     port: 4000
   /ws:
     port: 4001
+cors: true           # Enable CORS headers on proxied responses
+log_mode: minimal    # full | minimal | off
 ```
 
 Then run `sudo pugloo up` to register all mappings at once. Use `pugloo down` to tear them down.
@@ -55,15 +62,27 @@ Then run `sudo pugloo up` to register all mappings at once. Use `pugloo down` to
 
 | Command | Description |
 |---|---|
+| `pugloo start [name] --port N` | Map a domain (e.g. myapp.test) or start daemon |
+| `pugloo start name --route /api=8080` | Path-based routing |
+| `pugloo stop [name]` | Stop one domain or all mappings |
 | `pugloo map <domain> <port>` | Map a domain (or domain/path) to a local port |
 | `pugloo unmap <domain>` | Remove a domain or path mapping |
-| `pugloo up` | Start all services defined in `.pugloo.yaml` |
-| `pugloo down` | Stop all services defined in `.pugloo.yaml` |
-| `pugloo list` | List all active domain mappings |
-| `pugloo status` | Show daemon status and mapping count |
-| `pugloo start` | Start the proxy daemon manually |
-| `pugloo stop` | Stop the proxy daemon |
-| `pugloo share <domain>` | Expose a mapped domain publicly via tunnel |
+| `pugloo up [--config path]` | Start services from `.pugloo.yaml` |
+| `pugloo down [--config path]` | Stop services from `.pugloo.yaml` |
+| `pugloo list [--json]` | List active mappings |
+| `pugloo status` | Show daemon status |
+| `pugloo daemon start` | Start the proxy daemon |
+| `pugloo daemon stop` | Stop the proxy daemon |
+| `pugloo share [domain]` | Expose a domain or port publicly |
+| `pugloo share --port 3000` | Share localhost:3000 (random subdomain) |
+| `pugloo share --port 3000 --subdomain demo` | Request specific subdomain |
+| `pugloo share --port 3000 --password secret --ttl 30m` | Password + TTL |
+| `pugloo logs [--follow] [--flush]` | View daemon logs |
+| `pugloo doctor` | Run diagnostic checks |
+| `pugloo trust` | Trust the root CA in system keychain |
+| `pugloo update` | Update to latest version |
+| `pugloo uninstall` | Remove all pugloo data |
+| `pugloo login` | Log in (for share; requires hosted service) |
 
 Most commands that modify `/etc/hosts` require `sudo`.
 

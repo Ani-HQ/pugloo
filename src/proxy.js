@@ -7,19 +7,40 @@ import { homedir } from 'node:os';
 import httpProxy from 'http-proxy';
 import { getCertPaths, getCAPath } from './certs.js';
 
-const MAPPINGS_PATH = join(homedir(), '.pugloo', 'mappings.json');
+const PUGLOO_DIR = join(homedir(), '.pugloo');
+const MAPPINGS_PATH = join(PUGLOO_DIR, 'mappings.json');
+const CONFIG_PATH = join(PUGLOO_DIR, 'config.json');
 
 let httpServer = null;
 let httpsServer = null;
 let proxy = null;
 let mappings = {};
 let secureContextCache = {};
+let config = { cors: false, log_mode: 'full' };
+
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+
+function loadConfig() {
+  try {
+    const raw = readFileSync(CONFIG_PATH, 'utf-8');
+    const c = JSON.parse(raw);
+    if (c.cors !== undefined) config.cors = !!c.cors;
+    if (c.log_mode && ['full', 'minimal', 'off'].includes(c.log_mode)) {
+      config.log_mode = c.log_mode;
+    }
+  } catch {
+    // Use defaults
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Mappings
 // ---------------------------------------------------------------------------
 
 function loadMappings() {
+  loadConfig();
   try {
     const raw = readFileSync(MAPPINGS_PATH, 'utf-8');
     mappings = JSON.parse(raw);
@@ -156,25 +177,67 @@ function errorPage(target) {
 }
 
 // ---------------------------------------------------------------------------
+// CORS
+// ---------------------------------------------------------------------------
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Max-Age': '86400',
+};
+
+// ---------------------------------------------------------------------------
 // Request handling
 // ---------------------------------------------------------------------------
+
+function logRequest(hostname, method, url, statusCode) {
+  if (config.log_mode === 'off') return;
+  const line = `${new Date().toISOString()} ${hostname} ${method} ${url} ${statusCode}`;
+  if (config.log_mode === 'minimal' && statusCode < 400) return;
+  console.log(line);
+}
 
 function handleRequest(req, res) {
   const hostname = (req.headers.host || '').split(':')[0];
   const route = resolveTarget(hostname, req.url);
 
   if (!route) {
-    res.writeHead(502, { 'Content-Type': 'text/html; charset=utf-8' });
+    const headers = { 'Content-Type': 'text/html; charset=utf-8' };
+    if (config.cors) Object.assign(headers, CORS_HEADERS);
+    res.writeHead(502, headers);
     res.end(errorPage(hostname));
+    return;
+  }
+
+  // OPTIONS preflight
+  if (config.cors && req.method === 'OPTIONS') {
+    res.writeHead(204, CORS_HEADERS);
+    res.end();
     return;
   }
 
   proxy.web(req, res, { target: route.target, xfwd: true }, (err) => {
     if (!res.headersSent) {
-      res.writeHead(502, { 'Content-Type': 'text/html; charset=utf-8' });
+      const headers = { 'Content-Type': 'text/html; charset=utf-8' };
+      if (config.cors) Object.assign(headers, CORS_HEADERS);
+      res.writeHead(502, headers);
       res.end(errorPage(route.target));
     }
   });
+
+  res.on('finish', () => {
+    logRequest(hostname, req.method, req.url, res.statusCode);
+  });
+
+  // Add CORS headers to proxied response
+  if (config.cors) {
+    const origWriteHead = res.writeHead;
+    res.writeHead = function (statusCode, headers, ...rest) {
+      const merged = { ...(headers || {}), ...CORS_HEADERS };
+      return origWriteHead.call(this, statusCode, merged, ...rest);
+    };
+  }
 }
 
 function handleUpgrade(req, socket, head) {
