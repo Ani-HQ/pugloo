@@ -716,6 +716,45 @@ footer{
       <p>The latest 5 release points. See the full changelog for complete history.</p>
     </div>
     <div class="changelog reveal">
+      <div class="changelog-date">March 16, 2026</div>
+      <div class="changelog-entries">
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">10:30 AM</span>
+            <span class="changelog-title">Smart port detection</span>
+          </div>
+          <div class="changelog-desc">pugloo map and pugloo start now auto-detect running dev servers when port is omitted. Scans listening TCP ports via lsof, filters out non-dev apps, and presents results.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">11:15 AM</span>
+            <span class="changelog-title">Interactive port picker</span>
+          </div>
+          <div class="changelog-desc">When multiple servers are detected, an arrow-key picker lets you choose which one to map. Single server is auto-selected. Built with raw stdin, no extra dependencies.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">12:00 PM</span>
+            <span class="changelog-title">Daemon reliability overhaul</span>
+          </div>
+          <div class="changelog-desc">Switched daemon from fork() to spawn() to prevent inherited Node flags from crashing the child. Strips NODE_OPTIONS and logs stderr for debugging.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">12:45 PM</span>
+            <span class="changelog-title">Orphan cleanup</span>
+          </div>
+          <div class="changelog-desc">Daemon startup now detects and kills stale processes occupying ports 10443/10080 before launching. No more EADDRINUSE crashes from zombie daemons.</div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-time">1:30 PM</span>
+            <span class="changelog-title">New CLI commands</span>
+          </div>
+          <div class="changelog-desc">Added daemon, doctor, logs, login, update, and uninstall commands. Plus GCP infrastructure config and tunnel gateway service.</div>
+        </div>
+      </div>
+
       <div class="changelog-date">March 11, 2026</div>
       <div class="changelog-entries">
         <div class="changelog-entry">
