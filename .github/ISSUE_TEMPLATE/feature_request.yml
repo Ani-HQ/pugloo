@@ -1,0 +1,20 @@
+name: Feature request
+description: Propose an improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the situation, not just the solution. If an agent (Claude Code, Cursor, etc.) is involved in your workflow, say so — agent use cases are a priority.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: What should pugloo do? CLI examples welcome.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
