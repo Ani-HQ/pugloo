@@ -12,7 +12,7 @@ const activeTunnels = new Map();
 /**
  * Parse TTL string like "30m", "1h", "24h" to seconds.
  */
-function parseTtl(str) {
+export function parseTtl(str) {
   if (typeof str === "number") return str;
   if (!str || typeof str !== "string") return undefined;
   const m = str.trim().match(/^(\d+)(s|m|h|d)?$/i);
