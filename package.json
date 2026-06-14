@@ -1,6 +1,6 @@
 {
   "name": "pugloo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Stable HTTPS preview URLs for local dev and coding agents",
   "type": "module",
   "bin": {
