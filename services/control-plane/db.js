@@ -100,6 +100,17 @@ export function openDb(path = ":memory:") {
       return db.prepare("SELECT * FROM accounts WHERE id=?").get(r.lastInsertRowid);
     },
 
+    /** Find-or-create a GitHub account, deduped on the GitHub user id. */
+    upsertGithubAccount({ githubId, email = null }) {
+      const id = String(githubId);
+      const found = db.prepare("SELECT * FROM accounts WHERE kind='github' AND external_id=?").get(id);
+      if (found) return found;
+      const r = db.prepare(
+        "INSERT INTO accounts(kind, external_id, email, tier, created_at) VALUES('github',?,?,'free',?)",
+      ).run(id, email, nowIso());
+      return db.prepare("SELECT * FROM accounts WHERE id=?").get(r.lastInsertRowid);
+    },
+
     issueToken(accountId, name = null) {
       const token = "pgl_" + randomBytes(24).toString("hex");
       db.prepare(

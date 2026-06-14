@@ -40,6 +40,9 @@ ExecStart=/usr/bin/node --no-warnings /opt/pugloo-cp/server.js
 Environment=PORT=8090
 Environment=CONTROL_PLANE_DB=/var/lib/pugloo/control-plane.db
 Environment=CONTROL_PLANE_ADMIN_SECRET=$ADMIN_SECRET
+Environment=GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+Environment=GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+Environment=CONTROL_PLANE_PUBLIC_URL=${CONTROL_PLANE_PUBLIC_URL:-}
 Restart=always
 RestartSec=2
 User=root

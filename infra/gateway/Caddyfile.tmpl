@@ -5,10 +5,19 @@
 	}
 }
 
-# Bare host: abuse/info notice (cert auto-managed). Subdomain previews are
-# served by the catch-all below via on-demand TLS.
+# Bare host: serves the control-plane API (/auth signup + /health) and an
+# abuse/info notice for everything else. Subdomain previews are served by the
+# catch-all below via on-demand TLS.
 __SUBDOMAIN_HOST__ {
-	respond "pugloo preview gateway. URLs here are user-generated developer previews and may be removed at any time. Report abuse: https://github.com/Ani-HQ/pugloo/issues" 200
+	handle /auth/* {
+		reverse_proxy 127.0.0.1:8090
+	}
+	handle /health {
+		reverse_proxy 127.0.0.1:8090
+	}
+	handle {
+		respond "pugloo preview gateway. URLs here are user-generated developer previews and may be removed at any time. Report abuse: https://github.com/Ani-HQ/pugloo/issues" 200
+	}
 }
 
 :80 {
