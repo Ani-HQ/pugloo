@@ -41,7 +41,11 @@ if (cfg.transport === "frp") {
   const toml = [
     `serverAddr = "${cfg.frp.server}"`,
     `serverPort = ${cfg.frp.port}`,
-    cfg.frp.token ? `auth.token = "${cfg.frp.token}"` : "",
+    // TLS the control connection so the token in metadata isn't plaintext.
+    `transport.tls.enable = true`,
+    // Personal account token as client metadata (validated by the gateway
+    // plugin). Omitted = anonymous tier.
+    cfg.frp.token ? `metadatas.token = "${cfg.frp.token}"` : "",
     "",
     "[[proxies]]",
     `name = "${cfg.subdomain}"`,
