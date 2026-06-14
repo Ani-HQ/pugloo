@@ -16,9 +16,9 @@ https:// {
 	reverse_proxy 127.0.0.1:8080
 }
 
-# on-demand TLS guard: only issue certs for our sslip.io space
+# on-demand TLS guard: only issue certs for our preview host space
 :5555 {
-	@ok expression `{query.domain}.endsWith(".__IP__.sslip.io")`
+	@ok expression `{query.domain}.endsWith(".__SUBDOMAIN_HOST__")`
 	respond @ok 200
 	respond 404
 }
