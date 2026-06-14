@@ -20,10 +20,32 @@ import {
   ownerKeyFor,
   toFrpResponse,
 } from "./decisions.js";
+import { authorizeUrl, exchangeWebCode, fetchGithubUser } from "./github.js";
 
 const PORT = parseInt(process.env.PORT || "8090", 10);
 const DB_PATH = process.env.CONTROL_PLANE_DB || "/var/lib/pugloo/control-plane.db";
 const ADMIN_SECRET = process.env.CONTROL_PLANE_ADMIN_SECRET || "";
+const GH_CLIENT_ID = process.env.GITHUB_CLIENT_ID || "";
+const GH_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || "";
+const PUBLIC_URL = process.env.CONTROL_PLANE_PUBLIC_URL || ""; // e.g. https://api.<host>
+
+/** GitHub user -> pugloo account -> fresh token. Shared by device + web flows. */
+function issueForGithubUser(user) {
+  const account = db.upsertGithubAccount({ githubId: user.id, email: user.email || null });
+  const token = db.issueToken(account.id, `github:${user.login}`);
+  return { account, token };
+}
+
+function tokenPage(token, login) {
+  return `<!doctype html><meta charset=utf-8><title>pugloo — signed in</title>
+<body style="font:16px system-ui;max-width:40rem;margin:4rem auto;padding:0 1rem">
+<h1>Signed in as ${login}</h1>
+<p>Your pugloo token (save it now — shown once):</p>
+<pre style="background:#f4f4f5;padding:1rem;border-radius:8px;user-select:all">${token}</pre>
+<p>Then run:</p>
+<pre style="background:#f4f4f5;padding:1rem;border-radius:8px;user-select:all">pugloo login --token ${token}</pre>
+<p style="color:#666">Previews now run on your account tier with stable URLs.</p>`;
+}
 
 const db = openDb(DB_PATH);
 
@@ -121,6 +143,36 @@ const server = createServer(async (req, res) => {
     const account = db.createAccount({ kind: "admin", externalId: body.name || null, tier: body.tier || "free" });
     const token = db.issueToken(account.id, body.name || null);
     return send(res, 200, { token, account_id: account.id, tier: account.tier });
+  }
+
+  // --- GitHub OAuth: device-flow exchange (CLI got the github token itself) ---
+  if (req.method === "POST" && path === "/auth/github/exchange") {
+    const body = await readJson(req);
+    const user = body.github_token ? await fetchGithubUser(body.github_token) : null;
+    if (!user) return send(res, 401, { error: "invalid github token" });
+    const { account, token } = issueForGithubUser(user);
+    return send(res, 200, { token, login: user.login, tier: account.tier });
+  }
+
+  // --- GitHub OAuth: web flow (signup page button) ---
+  if (req.method === "GET" && path === "/auth/github/start") {
+    if (!GH_CLIENT_ID) return send(res, 503, { error: "github oauth not configured" });
+    const redirectUri = PUBLIC_URL ? `${PUBLIC_URL}/auth/github/callback` : undefined;
+    res.writeHead(302, { Location: authorizeUrl({ clientId: GH_CLIENT_ID, redirectUri }) });
+    return res.end();
+  }
+  if (req.method === "GET" && path === "/auth/github/callback") {
+    const code = new URL(req.url, "http://x").searchParams.get("code");
+    if (!code || !GH_CLIENT_ID || !GH_CLIENT_SECRET) {
+      return send(res, 400, { error: "missing code or oauth config" });
+    }
+    const redirectUri = PUBLIC_URL ? `${PUBLIC_URL}/auth/github/callback` : undefined;
+    const access = await exchangeWebCode({ clientId: GH_CLIENT_ID, clientSecret: GH_CLIENT_SECRET, code, redirectUri });
+    const user = access ? await fetchGithubUser(access) : null;
+    if (!user) return send(res, 401, { error: "github auth failed" });
+    const { token } = issueForGithubUser(user);
+    res.writeHead(200, { "Content-Type": "text/html" });
+    return res.end(tokenPage(token, user.login));
   }
 
   // frp server-plugin webhook.
