@@ -1,0 +1,40 @@
+name: Bug report
+description: Something is broken
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you run, what did you expect, what did you get?
+      placeholder: |
+        Ran `pugloo map myapp.test 3000`, expected https://myapp.test to load, got ...
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Diagnostics
+      description: Output of `pugloo doctor` (or `pugloo status` and `pugloo list`)
+      render: shell
+  - type: input
+    id: os
+    attributes:
+      label: OS and version
+      placeholder: macOS 15.3 / Ubuntu 24.04
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: output of `node --version`
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: pugloo version
+      placeholder: output of `pugloo --version`
+    validations:
+      required: true
