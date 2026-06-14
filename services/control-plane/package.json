@@ -1,6 +1,14 @@
 {
   "name": "pugloo-control-plane",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "description": "pugloo gateway control plane — frp server-plugin (auth, quotas, subdomain ownership)",
   "type": "module",
-  "main": "server.js"
+  "main": "server.js",
+  "private": true,
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
 }

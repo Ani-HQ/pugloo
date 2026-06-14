@@ -65,7 +65,10 @@ export function resolveTransport(env = process.env) {
           bin,
           server: env.PUGLOO_FRP_SERVER,
           port: parseInt(env.PUGLOO_FRP_PORT || "7000", 10),
-          token: env.PUGLOO_FRP_TOKEN || "",
+          // Personal account token (optional). Sent as frp client metadata and
+          // validated by the gateway control-plane plugin; absent = anonymous
+          // tier. Replaces the old shared PUGLOO_FRP_TOKEN secret.
+          token: env.PUGLOO_TOKEN || "",
           domain: env.PUGLOO_FRP_DOMAIN,
         },
       };
