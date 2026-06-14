@@ -57,6 +57,20 @@ pugloo preview --json
 
 Without `PUGLOO_FRP_*`, preview falls back to the built-in WebSocket tunnel.
 
+### Drive it from an agent
+
+`pugloo mcp` runs an MCP server exposing `create_preview`, `list_previews`, and
+`stop_preview`, so Claude Code / Cursor / other agents create previews natively
+and reply with the URL:
+
+```bash
+claude mcp add pugloo -- pugloo mcp
+```
+
+It auto-loads gateway config from `~/.pugloo/preview.env`. See
+[`AGENTS.md`](AGENTS.md) for the full JSON/exit-code contract and
+[`integrations/`](integrations/) for the MCP config and a Claude Code skill.
+
 ## Features
 
 - **Real HTTPS** with auto-generated TLS certificates (trusted locally via a project CA)
