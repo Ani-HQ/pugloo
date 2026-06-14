@@ -7,9 +7,9 @@ import { bold, green, dim, cyan, symbols } from '../colors.js';
 
 const ENV_PATH = join(homedir(), '.pugloo', 'preview.env');
 
-// Public GitHub OAuth client id for `pugloo login` (client ids are not secret).
-// Override with PUGLOO_GITHUB_CLIENT_ID until the shared app is provisioned.
-const DEFAULT_CLIENT_ID = '';
+// Public GitHub OAuth client id for `pugloo login` (client ids are not secret;
+// the secret lives only on the gateway). Override with PUGLOO_GITHUB_CLIENT_ID.
+const DEFAULT_CLIENT_ID = 'Ov23ligFiz5hoNms7T2k';
 
 function upsertEnv(key, value) {
   let lines = existsSync(ENV_PATH) ? readFileSync(ENV_PATH, 'utf-8').split('\n') : [];
