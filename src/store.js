@@ -4,6 +4,7 @@ import { homedir } from "node:os";
 
 const PUGLOO_DIR = join(homedir(), ".pugloo");
 const MAPPINGS_FILE = join(PUGLOO_DIR, "mappings.json");
+const CONFIG_FILE = join(PUGLOO_DIR, "config.json");
 
 /**
  * Returns an absolute path under ~/.pugloo/, creating intermediate
@@ -77,4 +78,36 @@ export function removeMapping(domain, path) {
  */
 export function getPidFile() {
   return getStorePath("daemon.pid");
+}
+
+/**
+ * Read proxy config (cors, log_mode). Returns defaults if file missing.
+ */
+export function getConfig() {
+  if (!existsSync(CONFIG_FILE)) {
+    return { cors: false, log_mode: "full" };
+  }
+  try {
+    const c = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
+    return {
+      cors: !!c.cors,
+      log_mode: ["full", "minimal", "off"].includes(c.log_mode) ? c.log_mode : "full",
+    };
+  } catch {
+    return { cors: false, log_mode: "full" };
+  }
+}
+
+/**
+ * Merge and save proxy config. Preserves existing keys not in updates.
+ */
+export function saveConfig(updates) {
+  const current = getConfig();
+  const merged = { ...current };
+  if (updates.cors !== undefined) merged.cors = !!updates.cors;
+  if (updates.log_mode && ["full", "minimal", "off"].includes(updates.log_mode)) {
+    merged.log_mode = updates.log_mode;
+  }
+  mkdirSync(PUGLOO_DIR, { recursive: true });
+  writeFileSync(CONFIG_FILE, JSON.stringify(merged, null, 2), "utf-8");
 }

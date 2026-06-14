@@ -1,0 +1,9 @@
+{
+  "name": "pugloo-tunnel-gateway",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "server.js",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

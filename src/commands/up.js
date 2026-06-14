@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import yaml from 'js-yaml';
 import { green, cyan, bold, dim, symbols } from '../colors.js';
-import { getMappings, saveMappings } from '../store.js';
+import { getMappings, saveMappings, saveConfig } from '../store.js';
 import { addHost } from '../hosts.js';
 import { generateDomainCert } from '../certs.js';
 import { ensureDaemon, reloadDaemon } from '../daemon.js';
@@ -13,9 +13,10 @@ import { validateHostname } from '../domain.js';
 
 const upCommand = new Command('up')
   .description('Start services defined in .pugloo.yaml')
+  .option('-c, --config <path>', 'Path to config file (default: .pugloo.yaml)')
   .option('--no-commands', 'Skip running service commands')
   .action(async (opts) => {
-    const configPath = resolve(process.cwd(), '.pugloo.yaml');
+    const configPath = resolve(process.cwd(), opts.config || '.pugloo.yaml');
     let raw;
 
     try {
@@ -32,12 +33,19 @@ const upCommand = new Command('up')
       process.exit(1);
     }
 
-    const { domain, services } = config;
+    const { domain, services, cors, log_mode } = config;
+
+    if (cors !== undefined || log_mode !== undefined) {
+      saveConfig({ cors: !!cors, log_mode });
+    }
 
     const validation = validateHostname(domain);
     if (!validation.valid) {
       console.error(`${symbols.cross} Invalid domain ${bold(domain)}: ${validation.reason}`);
       process.exit(1);
+    }
+    if (validation.warn) {
+      console.log(`  ${symbols.warn} ${validation.warn}`);
     }
 
     console.log(`\n${symbols.arrow} Starting ${bold(cyan(domain))} services\n`);

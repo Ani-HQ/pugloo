@@ -7,16 +7,41 @@ import { ensureDaemon, reloadDaemon } from '../daemon.js';
 import { setupPortForwarding, isPortForwardingActive } from '../ports.js';
 import { dropPrivileges } from '../privileges.js';
 import { validateHostname } from '../domain.js';
+import { detectListeningPorts } from '../detect-ports.js';
+import { pickPort } from '../picker.js';
 
 const mapCommand = new Command('map')
   .description('Map a local domain to a local port')
   .argument('<domain>', 'Domain to map (e.g. myapp.dev or myapp.dev/api)')
-  .argument('<target>', 'Local port number to proxy to')
+  .argument('[target]', 'Local port number (auto-detects if omitted)')
   .action(async (domain, target) => {
-    const port = parseInt(target, 10);
-    if (isNaN(port) || port < 1 || port > 65535) {
-      console.error(`${symbols.cross} Invalid port: ${target}`);
-      process.exit(1);
+    let port;
+
+    if (target !== undefined) {
+      port = parseInt(target, 10);
+      if (isNaN(port) || port < 1 || port > 65535) {
+        console.error(`${symbols.cross} Invalid port: ${target}`);
+        process.exit(1);
+      }
+    } else {
+      // Auto-detect running servers
+      const ports = detectListeningPorts();
+      if (ports.length === 0) {
+        console.error(`${symbols.cross} No listening servers detected.`);
+        console.error(`  ${dim('Specify a port explicitly:')} pugloo map ${domain} <port>`);
+        process.exit(1);
+      }
+      if (ports.length === 1) {
+        port = ports[0].port;
+        console.log(`\n  ${symbols.check} Detected ${bold(ports[0].command)} on port ${bold(green(String(port)))}`);
+      } else {
+        const choice = await pickPort(ports);
+        if (!choice) {
+          console.log(`${symbols.info} Cancelled.\n`);
+          process.exit(0);
+        }
+        port = choice.port;
+      }
     }
 
     // Split domain into hostname and optional path prefix
@@ -28,6 +53,9 @@ const mapCommand = new Command('map')
     if (!validation.valid) {
       console.error(`${symbols.cross} Invalid domain ${bold(hostname)}: ${validation.reason}`);
       process.exit(1);
+    }
+    if (validation.warn) {
+      console.log(`  ${symbols.warn} ${validation.warn}`);
     }
 
     console.log(`\n${symbols.arrow} Mapping ${bold(cyan(domain))} ${dim('->')} ${bold(green(`localhost:${port}`))}\n`);
