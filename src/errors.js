@@ -16,17 +16,20 @@ export const ERR = {
 };
 
 /**
- * Emit an error per the contract and exit. `extra` merges into the JSON
- * error object (e.g. { candidates: [...] }).
+ * Carries an ERR entry (code + name), a human hint, and optional extra fields
+ * for the JSON error object. Shared by the preview engine and the policy guard
+ * so callers can handle every failure with one `instanceof` check and map it to
+ * the documented exit code.
  */
-export function fail(json, err, message, hint, extra = {}) {
-  if (json) {
-    process.stdout.write(
-      JSON.stringify({ schema: 1, error: err.name, message, hint, ...extra }) + "\n",
-    );
-  } else {
-    process.stderr.write(`✗ ${message}\n`);
-    if (hint) process.stderr.write(`  ${hint}\n`);
+export class PreviewError extends Error {
+  constructor(errInfo, message, hint, extra = {}) {
+    super(message);
+    this.name = "PreviewError";
+    this.errInfo = errInfo; // { code, name } from ERR
+    this.hint = hint;
+    this.extra = extra;
   }
-  process.exit(err.code);
+  toJSON() {
+    return { schema: 1, error: this.errInfo.name, message: this.message, hint: this.hint, ...this.extra };
+  }
 }

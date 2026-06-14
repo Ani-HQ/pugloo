@@ -1,0 +1,8 @@
+{
+  "_comment": "Copy to ~/.pugloo/policy.json to customize. All fields optional.",
+  "disabled": false,
+  "requireToken": false,
+  "maxTtlSec": 86400,
+  "denyPorts": [22, 1433, 1521, 3306, 5432, 6379, 11211, 27017, 9200, 9300, 5984, 9092, 5672, 3389, 5900],
+  "allowPorts": []
+}
