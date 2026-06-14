@@ -1,7 +1,7 @@
 {
   "name": "pugloo",
-  "version": "0.1.6",
-  "description": "Clean HTTPS URLs for local development",
+  "version": "0.2.0",
+  "description": "Stable HTTPS preview URLs for local dev and coding agents",
   "type": "module",
   "bin": {
     "pugloo": "bin/pugloo.js"

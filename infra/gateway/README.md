@@ -38,7 +38,11 @@ naming, identity, and JSON contract on top; frp owns the pipe.
 ## Provision
 
 ```bash
-PROJECT=ani-hq REGION=us-central1 ZONE=us-central1-a ./setup-gateway.sh
+# sslip.io mode — zero DNS, works immediately:
+PROJECT=my-gcp-project ./setup-gateway.sh
+
+# vanity-domain mode — create *.preview.example.com -> the VM IP first:
+PROJECT=my-gcp-project DOMAIN=preview.example.com EMAIL=you@example.com ./setup-gateway.sh
 ```
 
 The script reserves a static IP, opens the firewall (7000/80/443), and creates
@@ -46,6 +50,12 @@ an `e2-micro` VM whose startup script installs frps + Caddy from the templates
 here. It prints the client env block to paste into `~/.pugloo/preview.env`.
 The frp auth token is generated on the VM and printed once — keep it secret
 (it controls who can open tunnels). It is never committed.
+
+Set `DOMAIN` to use a vanity wildcard host (`https://<sub>.$DOMAIN`); you must
+first create a wildcard DNS record `*.$DOMAIN` -> the VM's static IP (grey-cloud
+/ DNS-only if behind Cloudflare). Without `DOMAIN`, previews use sslip.io and
+need no DNS records at all. The live instance for this repo runs with
+`DOMAIN=preview.ani.computer`.
 
 ## Use it
 
@@ -60,5 +70,5 @@ WebSocket tunnel transport.
 ## Files
 
 - `setup-gateway.sh` — one-shot provisioner (idempotent: re-running reuses the IP/VM).
-- `frps.toml.tmpl` — frp server config (`__IP__`/`__TOKEN__` filled at boot).
-- `Caddyfile.tmpl` — Caddy on-demand-TLS reverse proxy (`__IP__`/`__EMAIL__` filled at boot).
+- `frps.toml.tmpl` — frp server config (`__SUBDOMAIN_HOST__`/`__TOKEN__` filled at boot).
+- `Caddyfile.tmpl` — Caddy on-demand-TLS reverse proxy (`__SUBDOMAIN_HOST__`/`__EMAIL__` filled at boot).

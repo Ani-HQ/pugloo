@@ -14,6 +14,11 @@ EMAIL="${EMAIL:-admin@example.com}"
 MACHINE="${MACHINE:-e2-micro}"
 NAME="${NAME:-pugloo-gateway}"
 FRP_VERSION="${FRP_VERSION:-0.61.1}"
+# Optional vanity domain. If set (e.g. DOMAIN=preview.example.com), previews are
+# https://<sub>.$DOMAIN and you must create a wildcard DNS record *.$DOMAIN -> the
+# VM's static IP first (grey-cloud / DNS-only if behind Cloudflare). If unset,
+# previews use sslip.io and need no DNS at all.
+DOMAIN="${DOMAIN:-}"
 
 here="$(cd "$(dirname "$0")" && pwd)"
 
@@ -22,6 +27,11 @@ gcloud compute addresses create "${NAME}-ip" --project "$PROJECT" --region "$REG
   || echo "    (exists)"
 IP="$(gcloud compute addresses describe "${NAME}-ip" --project "$PROJECT" --region "$REGION" --format='value(address)')"
 echo "    IP=$IP"
+
+# Public host previews live under: vanity domain if provided, else sslip.io.
+SUBDOMAIN_HOST="${DOMAIN:-$IP.sslip.io}"
+echo "    SUBDOMAIN_HOST=$SUBDOMAIN_HOST"
+[ -n "$DOMAIN" ] && echo "    (ensure *.$DOMAIN resolves to $IP before first use)"
 
 echo "==> firewall (7000/80/443)"
 gcloud compute firewall-rules create "${NAME}-fw" --project "$PROJECT" \
@@ -32,8 +42,8 @@ gcloud compute firewall-rules create "${NAME}-fw" --project "$PROJECT" \
 TOKEN="${PUGLOO_FRP_TOKEN:-$(openssl rand -hex 24)}"
 
 # Render the startup script from the templates in this directory.
-FRPS_TMPL="$(sed -e "s/__IP__/$IP/g" -e "s/__TOKEN__/$TOKEN/g" "$here/frps.toml.tmpl")"
-CADDY_TMPL="$(sed -e "s/__IP__/$IP/g" -e "s/__EMAIL__/$EMAIL/g" "$here/Caddyfile.tmpl")"
+FRPS_TMPL="$(sed -e "s/__SUBDOMAIN_HOST__/$SUBDOMAIN_HOST/g" -e "s/__TOKEN__/$TOKEN/g" "$here/frps.toml.tmpl")"
+CADDY_TMPL="$(sed -e "s/__SUBDOMAIN_HOST__/$SUBDOMAIN_HOST/g" -e "s/__EMAIL__/$EMAIL/g" "$here/Caddyfile.tmpl")"
 
 STARTUP="$(mktemp)"
 cat > "$STARTUP" <<STARTUP_EOF
@@ -97,7 +107,7 @@ cat <<EOF
 
   export PUGLOO_FRP_SERVER=$IP
   export PUGLOO_FRP_PORT=7000
-  export PUGLOO_FRP_DOMAIN=$IP.sslip.io
+  export PUGLOO_FRP_DOMAIN=$SUBDOMAIN_HOST
   export PUGLOO_FRP_TOKEN=$TOKEN
   export PUGLOO_FRP_BIN=\$(command -v frpc)
 
