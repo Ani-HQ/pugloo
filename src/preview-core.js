@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { detectListeningPorts } from "./detect-ports.js";
 import { gitContext, deriveSubdomain } from "./subdomain.js";
 import { getOwner } from "./identity.js";
-import { ERR } from "./errors.js";
+import { ERR, PreviewError } from "./errors.js";
 import { parseTtl } from "./tunnel.js";
 import { getStorePath } from "./store.js";
 import {
@@ -18,6 +18,7 @@ import {
   isPidAlive,
 } from "./previews.js";
 import { buildPreviewResult } from "./preview-contract.js";
+import { loadPolicy, assertPreviewsAllowed, assertPortAllowed, clampTtl } from "./policy.js";
 
 /**
  * Shared preview engine used by both the CLI (`pugloo preview`) and the MCP
@@ -30,18 +31,9 @@ import { buildPreviewResult } from "./preview-contract.js";
 const DEFAULT_TTL_SEC = 24 * 3600;
 const LIVE_POLL_TIMEOUT_MS = 10_000;
 
-export class PreviewError extends Error {
-  constructor(errInfo, message, hint, extra = {}) {
-    super(message);
-    this.name = "PreviewError";
-    this.errInfo = errInfo; // { code, name } from ERR
-    this.hint = hint;
-    this.extra = extra;
-  }
-  toJSON() {
-    return { schema: 1, error: this.errInfo.name, message: this.message, hint: this.hint, ...this.extra };
-  }
-}
+// Re-export so existing importers (CLI command, MCP server) can keep importing
+// PreviewError from preview-core.
+export { PreviewError };
 
 function isPortListening(port, timeoutMs = 1500) {
   return new Promise((resolve) => {
@@ -140,6 +132,9 @@ function startRunner({ id, subdomain, port, ttlSec, expires, env }) {
  * @returns the schema-v1 result object. Throws PreviewError on failure.
  */
 export async function createPreview({ port: portOpt, name, ttl } = {}, { env = process.env, cwd = process.cwd() } = {}) {
+  const policy = loadPolicy({ env });
+  assertPreviewsAllowed(policy, { env });
+
   const ctx = gitContext(cwd, env);
   const owner = getOwner(env);
   const entries = loadPreviews();
@@ -169,7 +164,10 @@ export async function createPreview({ port: portOpt, name, ttl } = {}, { env = p
     detected = true;
   }
 
-  const ttlSec = ttl ? parseTtl(ttl) ?? DEFAULT_TTL_SEC : DEFAULT_TTL_SEC;
+  assertPortAllowed(policy, port);
+
+  const requestedTtl = ttl ? parseTtl(ttl) ?? DEFAULT_TTL_SEC : DEFAULT_TTL_SEC;
+  const ttlSec = clampTtl(policy, requestedTtl);
   const expires = new Date(Date.now() + ttlSec * 1000).toISOString();
 
   let base = name;
