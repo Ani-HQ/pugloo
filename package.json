@@ -9,7 +9,9 @@
   "files": [
     "bin/",
     "src/",
+    "integrations/",
     "README.md",
+    "AGENTS.md",
     "LICENSE"
   ],
   "scripts": {
