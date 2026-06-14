@@ -1,0 +1,64 @@
+# pugloo preview gateway
+
+The public relay that turns `pugloo preview` into a real HTTPS URL. This is the
+**wrap-an-existing-core** approach from the design plan: a single small VM
+running [frp](https://github.com/fatedier/frp) (the tunnel transport) behind
+[Caddy](https://caddyserver.com) (automatic Let's Encrypt TLS). pugloo owns the
+naming, identity, and JSON contract on top; frp owns the pipe.
+
+```
+  agent → pugloo preview          reviewer browser
+        → frpc (PUGLOO_FRP_*)            │ https://<sub>.<ip>.sslip.io
+        → frps :7000 ───────────────────┤
+                                         ▼
+                       Caddy :443 (on-demand Let's Encrypt)
+                                         │ reverse_proxy
+                                         ▼
+                       frps vhost :8080 ── routes by Host subdomain
+                                         ▼
+                       frpc → localhost:<port> on the dev machine
+```
+
+## Why this shape
+
+- **No DNS dependency.** Hostnames use [sslip.io](https://sslip.io)
+  (`<anything>.<ip>.sslip.io` resolves to `<ip>`), so a preview is
+  `https://pugloo-feat-login-abc123.34.122.152.105.sslip.io` with a real,
+  browser-trusted cert and zero DNS records to manage. Swapping in a vanity
+  domain later (`*.preview.example.com`) is just one wildcard DNS record
+  pointing at the VM plus an `email`/host tweak in the Caddyfile — the rest is
+  unchanged.
+- **No wildcard cert needed.** Caddy's on-demand TLS issues a per-hostname
+  Let's Encrypt cert on first request (TLS-ALPN-01 on :443), gated by the
+  `ask` endpoint so only `*.<ip>.sslip.io` hosts can trigger issuance.
+- **Cloud Run can't do this.** Wildcard / arbitrary-subdomain custom domains
+  and raw TCP (frp control port) need a VM, not Cloud Run — which is why the
+  old `infra/gcp` Cloud Run path was abandoned for previews.
+
+## Provision
+
+```bash
+PROJECT=ani-hq REGION=us-central1 ZONE=us-central1-a ./setup-gateway.sh
+```
+
+The script reserves a static IP, opens the firewall (7000/80/443), and creates
+an `e2-micro` VM whose startup script installs frps + Caddy from the templates
+here. It prints the client env block to paste into `~/.pugloo/preview.env`.
+The frp auth token is generated on the VM and printed once — keep it secret
+(it controls who can open tunnels). It is never committed.
+
+## Use it
+
+```bash
+source ~/.pugloo/preview.env     # PUGLOO_FRP_SERVER / _DOMAIN / _TOKEN / _BIN
+pugloo preview --json            # → https://<sub>.<ip>.sslip.io
+```
+
+Without `PUGLOO_FRP_*` set, `pugloo preview` falls back to the built-in
+WebSocket tunnel transport.
+
+## Files
+
+- `setup-gateway.sh` — one-shot provisioner (idempotent: re-running reuses the IP/VM).
+- `frps.toml.tmpl` — frp server config (`__IP__`/`__TOKEN__` filled at boot).
+- `Caddyfile.tmpl` — Caddy on-demand-TLS reverse proxy (`__IP__`/`__EMAIL__` filled at boot).
