@@ -1,10 +1,15 @@
 bindPort = 7000
 vhostHTTPPort = 8080
 subDomainHost = "__SUBDOMAIN_HOST__"
-auth.method = "token"
-auth.token = "__TOKEN__"
-# Cap concurrent tunnels per client connection (basic abuse limit).
+# No shared auth.token: per-client auth + quotas are enforced by the control-plane
+# server plugin below (deploy-control-plane.sh). Tokenless clients = anonymous tier.
 maxPortsPerClient = 5
 log.to = "/var/log/frps.log"
 log.level = "info"
 log.maxDays = 3
+
+[[httpPlugins]]
+name = "pugloo-control-plane"
+addr = "127.0.0.1:8090"
+path = "/handler"
+ops = ["Login", "NewProxy", "CloseProxy"]

@@ -38,11 +38,11 @@ gcloud compute firewall-rules create "${NAME}-fw" --project "$PROJECT" \
   --allow tcp:7000,tcp:80,tcp:443 --target-tags "$NAME" \
   --description "pugloo preview gateway" 2>/dev/null || echo "    (exists)"
 
-# Generate a token unless one is provided.
-TOKEN="${PUGLOO_FRP_TOKEN:-$(openssl rand -hex 24)}"
+# No shared frp token: auth + quotas are enforced by the control-plane plugin
+# (run deploy-control-plane.sh after this). Tokenless clients = anonymous tier.
 
 # Render the startup script from the templates in this directory.
-FRPS_TMPL="$(sed -e "s/__SUBDOMAIN_HOST__/$SUBDOMAIN_HOST/g" -e "s/__TOKEN__/$TOKEN/g" "$here/frps.toml.tmpl")"
+FRPS_TMPL="$(sed -e "s/__SUBDOMAIN_HOST__/$SUBDOMAIN_HOST/g" "$here/frps.toml.tmpl")"
 CADDY_TMPL="$(sed -e "s/__SUBDOMAIN_HOST__/$SUBDOMAIN_HOST/g" -e "s/__EMAIL__/$EMAIL/g" "$here/Caddyfile.tmpl")"
 
 STARTUP="$(mktemp)"
@@ -103,14 +103,19 @@ rm -f "$STARTUP"
 
 cat <<EOF
 
-==> done. Add to ~/.pugloo/preview.env (keep the token secret, do not commit):
+==> gateway up. Next: deploy the control-plane (auth/quotas), then configure clients.
+
+  ./deploy-control-plane.sh                 # installs Node + the frp plugin on the VM
+
+Add to ~/.pugloo/preview.env:
 
   export PUGLOO_FRP_SERVER=$IP
   export PUGLOO_FRP_PORT=7000
   export PUGLOO_FRP_DOMAIN=$SUBDOMAIN_HOST
-  export PUGLOO_FRP_TOKEN=$TOKEN
   export PUGLOO_FRP_BIN=\$(command -v frpc)
 
+Anonymous previews work with no token. For an account tier, mint a token
+(see deploy-control-plane.sh output) and run: pugloo login --token pgl_...
 Then: source ~/.pugloo/preview.env && pugloo preview --json
 (give the VM ~90s on first boot to install frps + Caddy)
 EOF
