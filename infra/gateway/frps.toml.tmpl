@@ -3,6 +3,8 @@ vhostHTTPPort = 8080
 subDomainHost = "__SUBDOMAIN_HOST__"
 auth.method = "token"
 auth.token = "__TOKEN__"
+# Cap concurrent tunnels per client connection (basic abuse limit).
+maxPortsPerClient = 5
 log.to = "/var/log/frps.log"
 log.level = "info"
 log.maxDays = 3

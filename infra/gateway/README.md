@@ -67,7 +67,40 @@ pugloo preview --json            # → https://<sub>.<ip>.sslip.io
 Without `PUGLOO_FRP_*` set, `pugloo preview` falls back to the built-in
 WebSocket tunnel transport.
 
+## Running it open to the public
+
+If strangers will create previews through your gateway, you become a public
+tunnel relay. Protect yourself:
+
+- **Shield your brand domain.** Serve public/anonymous previews on **sslip.io**,
+  not a subdomain of your primary domain. One bad actor's content can get a
+  domain flagged by Safe Browsing; on sslip.io that risk isn't yours. This also
+  sidesteps the **Public Suffix List** requirement — sslip.io is already on the
+  PSL (cookie isolation + per-host blocklist scope). If you must use a vanity
+  domain for public traffic, submit it to the PSL first
+  (<https://github.com/publicsuffix/list>) — that takes weeks.
+- **Cost.** Set a GCP billing budget + alert on the project. egress is the main
+  cost on an open relay.
+- **Abuse.** Publish an acceptable-use policy (see `docs/acceptable-use.md`),
+  keep the gateway's notice page pointing at a report channel, and keep
+  `maxPortsPerClient` set in `frps.toml`.
+- **Kill switch.** `scripts/gateway-ops.sh disable|stop` takes the gateway
+  offline fast if something goes wrong.
+- **Vanity bare host.** The notice block in `Caddyfile.tmpl` needs a cert for
+  the bare `$DOMAIN`; with a wildcard-only DNS record (`*.$DOMAIN`) the apex has
+  no A record, so either add a bare `$DOMAIN` A record or remove that block.
+
+The token gate (`auth.token`) means the gateway is not truly "open" until you
+hand the token out. Real per-user accounts/quotas need the control-plane
+(`services/control-plane`), which is not built yet — until then, treat a shared
+token as the only gate.
+
 ## Files
+
+- `setup-gateway.sh` — one-shot provisioner (idempotent: re-running reuses the IP/VM).
+- `frps.toml.tmpl` — frp server config (`__SUBDOMAIN_HOST__`/`__TOKEN__` filled at boot).
+- `Caddyfile.tmpl` — Caddy on-demand-TLS reverse proxy (`__SUBDOMAIN_HOST__`/`__EMAIL__` filled at boot).
+- `../../scripts/gateway-ops.sh` — operate/kill the running gateway.
 
 - `setup-gateway.sh` — one-shot provisioner (idempotent: re-running reuses the IP/VM).
 - `frps.toml.tmpl` — frp server config (`__SUBDOMAIN_HOST__`/`__TOKEN__` filled at boot).
