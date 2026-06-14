@@ -1,0 +1,48 @@
+name: Release
+
+# Publishes to npm with provenance when a v* tag is pushed. Provenance needs
+# OIDC (id-token: write) which only works in CI — that's why local
+# `npm publish --provenance` fails and this workflow exists.
+#
+# One-time setup:
+#   1. Create an npm "Automation" access token (npmjs.com -> Access Tokens).
+#   2. Add it as a repo secret named NPM_TOKEN
+#      (gh secret set NPM_TOKEN --repo Ani-HQ/pugloo).
+#
+# Release flow:
+#   - bump "version" in package.json (+ package-lock.json), commit, merge to main
+#   - git tag vX.Y.Z && git push origin vX.Y.Z   ->  this workflow publishes it
+# Do not re-push an existing tag; npm refuses to republish a version.
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for npm provenance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+
+      - name: Guard — tag must match package.json version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "tag v$TAG does not match package.json $PKG"; exit 1
+          fi
+
+      - run: npm test
+
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
