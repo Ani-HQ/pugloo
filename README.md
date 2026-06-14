@@ -28,6 +28,35 @@ sudo pugloo up --config /path/to/.pugloo.yaml
 
 Then visit `https://myapp.test` in your browser.
 
+## Preview URLs for agents (experimental)
+
+`pugloo preview` gives a coding agent one command to turn the app it just
+started into a public HTTPS URL it can drop into a chat reply for review:
+
+```bash
+$ pugloo preview --json
+{"schema":1,"url":"https://pugloo-feat-login-abc123.<gateway>","expires":"...",
+ "port":3000,"branch":"feat/login","rebound":false,"stability":"machine",
+ "share_hint":"Include this URL in your reply so the reviewer can open it."}
+```
+
+- **Zero args**: detects the running dev server, derives a stable subdomain from
+  the repo + branch, returns in seconds. No sudo, no foreground process.
+- **Consistent**: the same branch always gets the same URL. Set `PUGLOO_TOKEN`
+  and the URL stays stable across machines and CI sandboxes too.
+- **Agent-friendly**: JSON on stdout, documented exit codes (`PUGLOO_ERR_*`),
+  idempotent re-runs, `--stop` to tear down.
+
+It needs a relay to hand out public URLs. Stand one up (a single frps + Caddy
+VM) with [`infra/gateway/setup-gateway.sh`](infra/gateway/), then:
+
+```bash
+source ~/.pugloo/preview.env   # PUGLOO_FRP_SERVER / _DOMAIN / _TOKEN / _BIN
+pugloo preview --json
+```
+
+Without `PUGLOO_FRP_*`, preview falls back to the built-in WebSocket tunnel.
+
 ## Features
 
 - **Real HTTPS** with auto-generated TLS certificates (trusted locally via a project CA)

@@ -1,8 +1,12 @@
 name: Deploy to GCP
 
+# Manual-only. This builds the original Cloud Run tunnel-gateway/control-plane
+# images, which are NOT the current preview path — previews now run on a single
+# frps + Caddy VM (see infra/gateway/). It also needs GCP_SA_KEY / GCP_PROJECT_ID
+# secrets that are not configured, so a push trigger only produces red builds.
+# Kept here (dispatch-only) until the gateway-v2 services are rebuilt; re-enable
+# the push trigger then.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 env:

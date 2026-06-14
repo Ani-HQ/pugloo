@@ -48,6 +48,9 @@ if (cfg.transport === "frp") {
     `type = "http"`,
     `localPort = ${cfg.port}`,
     `subdomain = "${cfg.subdomain}"`,
+    // Rewrite Host to localhost so dev servers that allow-list hosts
+    // (Vite 5+, Next) don't reject the public tunnel hostname.
+    `hostHeaderRewrite = "localhost"`,
     "",
   ]
     .filter((l) => l !== "")
