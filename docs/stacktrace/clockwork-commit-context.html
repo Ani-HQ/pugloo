@@ -1,150 +1,133 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JJZ0RZ3BME"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-JJZ0RZ3BME');
-  </script>
-  <title>Clockwork Commit Context for Cursor | Stacktrace by pugloo</title>
-  <meta name="description" content="How to automate Cursor local context refresh and changelog commit feed updates on every git commit using a post-commit hook and Node.js scripts.">
-  <meta name="keywords" content="Cursor context, git post-commit hook, Node.js automation, changelog automation, developer experience, local tooling">
-  <meta property="og:title" content="Clockwork Commit Context for Cursor">
-  <meta property="og:description" content="Automate local AI context and changelog updates after each commit with a lightweight Node.js pipeline.">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://pugloo.ani.computer/stacktrace/clockwork-commit-context.html">
-  <link rel="canonical" href="https://pugloo.ani.computer/stacktrace/clockwork-commit-context.html">
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "TechArticle",
-      "headline": "Clockwork Commit Context for Cursor",
-      "description": "Automate local AI context and changelog updates after each commit with a lightweight Node.js pipeline.",
-      "author": { "@type": "Organization", "name": "pugloo" },
-      "publisher": { "@type": "Organization", "name": "pugloo" },
-      "datePublished": "2026-03-11",
-      "dateModified": "2026-03-11",
-      "mainEntityOfPage": "https://pugloo.ani.computer/stacktrace/clockwork-commit-context.html",
-      "about": ["git hook", "Cursor", "developer tooling", "Node.js"],
-      "inLanguage": "en"
-    }
-  </script>
-  <style>
-    :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#475569; --border:#e2e8f0; --accent:#0d9488; }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    main { max-width: 960px; margin: 0 auto; padding: 32px 20px 72px; }
-    .top { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
-    a { color: var(--accent); text-decoration: none; font-weight: 600; }
-    h1 { margin: 0 0 8px; font-size: 2.1rem; line-height: 1.2; }
-    .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
-    p { line-height: 1.7; color: #1e293b; }
-    h2 { margin-top: 28px; margin-bottom: 8px; font-size: 1.4rem; }
-    .card {
-      border: 1px solid var(--border);
-      background: var(--card);
-      border-radius: 12px;
-      padding: 16px;
-      margin: 14px 0;
-    }
-    pre {
-      margin: 0;
-      background: #0f172a;
-      color: #e2e8f0;
-      border-radius: 10px;
-      padding: 14px;
-      overflow-x: auto;
-      font-size: 0.88rem;
-      line-height: 1.5;
-    }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    ul { line-height: 1.65; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JJZ0RZ3BME"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JJZ0RZ3BME');
+</script>
+<title>Clockwork Commit Context for Cursor — Stacktrace by pugloo</title>
+<meta name="description" content="How to automate Cursor local context refresh and changelog commit feed updates on every git commit using a post-commit hook and Node.js scripts.">
+<meta name="keywords" content="Cursor context, git post-commit hook, Node.js automation, changelog automation, developer experience, local tooling">
+<meta property="og:title" content="Clockwork Commit Context for Cursor">
+<meta property="og:description" content="Automate local AI context and changelog updates after each commit with a lightweight Node.js pipeline.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://pugloo.ani.computer/stacktrace/clockwork-commit-context.html">
+<link rel="canonical" href="https://pugloo.ani.computer/stacktrace/clockwork-commit-context.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Clockwork Commit Context for Cursor",
+  "description": "Automate local AI context and changelog updates after each commit with a lightweight Node.js pipeline.",
+  "author": { "@type": "Organization", "name": "pugloo" },
+  "publisher": { "@type": "Organization", "name": "pugloo" },
+  "datePublished": "2026-03-11",
+  "dateModified": "2026-03-11",
+  "mainEntityOfPage": "https://pugloo.ani.computer/stacktrace/clockwork-commit-context.html",
+  "about": ["git hook", "Cursor", "developer tooling", "Node.js"],
+  "inLanguage": "en"
+}
+</script>
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <main>
-    <div class="top">
-      <a href="/stacktrace/">Back to Stacktrace</a>
-      <a href="/changelog.html">Open changelog</a>
+
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="/">pugloo<span class="cur"> ▸</span></a>
+    <nav class="links">
+      <a href="/#previews">previews</a>
+      <a href="/#local">local https</a>
+      <a href="/#agents">agents</a>
+      <a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">github</a>
+      <a href="/signup.html" class="cta">sign up</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap page">
+  <div class="label"><a href="/stacktrace/">stacktrace</a> / article</div>
+  <h1 class="page-title">Clockwork Commit Context for Cursor</h1>
+  <p class="meta">2026-03-11 · 8 min read · developer tooling</p>
+</main>
+
+<article class="wrap prose">
+  <p>
+    This guide shows how to make commit metadata available to Cursor automatically, project by
+    project, with no global setup. We pair a git post-commit hook with a lightweight Node.js script
+    that writes a local context file, and keep changelog feed sync as an explicit docs command to
+    avoid dirty trees after every commit. The result is predictable, transparent, and easy to maintain.
+  </p>
+
+  <h2>Architecture</h2>
+<pre><code>git commit
+  └─ post-commit hook
+       └─ scripts/post-commit-clockwork.mjs
+            └─ .cursor/context/last-commit.md  → Cursor reads local context rule
+
+npm run clockwork:sync:changelog
+  └─ docs/changelog.html auto feed            → team sees latest commit stream</code></pre>
+
+  <h2>What gets generated</h2>
+  <ul>
+    <li><code>.cursor/context/last-commit.md</code> — hash, subject, author, date, body, and changed files.</li>
+    <li><code>docs/changelog.html</code> commit list between marker comments, refreshed by <code>clockwork:sync:changelog</code>.</li>
+    <li>A local rule in <code>.cursor/rules/clockwork-context.mdc</code> so Cursor prioritizes this context.</li>
+  </ul>
+
+  <h2>Implementation</h2>
+<pre><code><span class="p">$</span> npm run hooks:install
+<span class="p">$</span> npm run clockwork:sync
+<span class="p">$</span> npm run clockwork:sync:changelog</code></pre>
+  <p>
+    The install step writes <code>.git/hooks/post-commit</code> only in this repository. The sync
+    command refreshes local Cursor context. The changelog sync command is explicit, so routine
+    commits stay clean.
+  </p>
+
+  <h2>SEO and GEO strategy</h2>
+  <ul>
+    <li>Use explicit entities in headings: git hook, Cursor context, Node.js automation, changelog feed.</li>
+    <li>Add <code>TechArticle</code> structured data so search and AI answer engines classify the page correctly.</li>
+    <li>Keep a concise problem-to-solution flow for retrieval quality in snippets and model answers.</li>
+    <li>Link this article from the changelog and route index for stronger internal relevance.</li>
+  </ul>
+
+  <h2>Operational checklist</h2>
+<pre><code>Developer → Git:    commit
+Git → post-commit:  trigger
+post-commit → Cursor: write last-commit.md
+Developer → Docs:   run changelog sync command
+Cursor → Developer: updated local context on next task</code></pre>
+  <p>
+    For stricter automation, run changelog sync in CI for docs branches. In this repo the
+    post-commit hook stays fast and non-mutating for tracked files.
+  </p>
+
+  <div class="crumbs">
+    <a href="/stacktrace/">← stacktrace</a>
+    <a href="/changelog.html">changelog →</a>
+  </div>
+</article>
+
+<footer>
+  <div class="wrap foot-row">
+    <span class="stamp">pugloo v0.3.0 · MIT · © 2026</span>
+    <div class="foot-links">
+      <a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">github</a>
+      <a href="https://www.npmjs.com/package/pugloo" target="_blank" rel="noopener">npm</a>
+      <a href="/changelog.html">changelog</a>
+      <a href="/stacktrace/">stacktrace</a>
+      <a href="/signup.html">sign up</a>
     </div>
-    <h1>Clockwork Commit Context for Cursor in a Node.js Repo</h1>
-    <p class="meta">Published 2026-03-11 · 8 min read · Developer tooling</p>
+  </div>
+</footer>
 
-    <p>
-      This guide shows how to make commit metadata available to Cursor automatically, project by project, with no global setup.
-      We pair a git post-commit hook with a lightweight Node.js script that writes a local context file.
-      We keep changelog feed sync as an explicit docs command to avoid dirty trees after every commit.
-      The result is predictable, transparent, and easy to maintain.
-    </p>
-
-    <h2>Architecture</h2>
-    <div class="card">
-      <pre class="mermaid">flowchart TD
-  A[git commit] --> B[post-commit hook]
-  B --> C[scripts/post-commit-clockwork.mjs]
-  C --> D[.cursor/context/last-commit.md]
-  H[npm run clockwork:sync:changelog] --> E[docs/changelog.html auto feed]
-  D --> F[Cursor reads local context rule]
-  E --> G[Team sees latest commit stream]
-      </pre>
-    </div>
-
-    <h2>What gets generated</h2>
-    <ul>
-      <li><code>.cursor/context/last-commit.md</code> with hash, subject, author, date, commit body, and changed files.</li>
-      <li><code>docs/changelog.html</code> commit list between marker comments, refreshed by <code>clockwork:sync:changelog</code>.</li>
-      <li>A local rule in <code>.cursor/rules/clockwork-context.mdc</code> so Cursor can prioritize this context.</li>
-    </ul>
-
-    <h2>Implementation notes</h2>
-    <div class="card">
-      <pre><code>npm run hooks:install
-npm run clockwork:sync
-npm run clockwork:sync:changelog</code></pre>
-    </div>
-    <p>
-      The install step writes <code>.git/hooks/post-commit</code> only in this repository.
-      The sync command refreshes local Cursor context.
-      The changelog sync command is explicit so routine commits stay clean.
-    </p>
-
-    <h2>SEO and GEO strategy</h2>
-    <ul>
-      <li>Use explicit entities in headings: git hook, Cursor context, Node.js automation, changelog feed.</li>
-      <li>Add structured data using <code>TechArticle</code> so search and AI answer engines can classify the page correctly.</li>
-      <li>Keep concise problem to solution flow for retrieval quality in search snippets and model-generated answers.</li>
-      <li>Link this article from changelog and route index for stronger internal relevance signals.</li>
-    </ul>
-
-    <h2>Operational checklist</h2>
-    <div class="card">
-      <pre class="mermaid">sequenceDiagram
-  participant Dev as Developer
-  participant Git as Git
-  participant Hook as post-commit
-  participant Docs as docs/changelog.html
-  participant Cursor as Cursor context
-  Dev->>Git: commit
-  Git->>Hook: trigger
-  Hook->>Cursor: write last-commit.md
-  Dev->>Docs: run changelog sync command
-  Cursor-->>Dev: updated local context on next task
-      </pre>
-    </div>
-
-    <p>
-      If you want stricter automation, you can run changelog sync in CI for docs branches.
-      In this repo the post-commit hook stays fast and non-mutating for tracked files.
-    </p>
-  </main>
-
-  <script type="module">
-    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-    mermaid.initialize({ startOnLoad: true, theme: "default" });
-  </script>
 </body>
 </html>

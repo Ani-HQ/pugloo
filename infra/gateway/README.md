@@ -81,7 +81,7 @@ tunnel relay. Protect yourself:
   (<https://github.com/publicsuffix/list>) — that takes weeks.
 - **Cost.** Set a GCP billing budget + alert on the project. egress is the main
   cost on an open relay.
-- **Abuse.** Publish an acceptable-use policy (see `docs/acceptable-use.md`),
+- **Abuse.** Publish an acceptable-use policy (see `docs/acceptable-use.html`),
   keep the gateway's notice page pointing at a report channel, and keep
   `maxPortsPerClient` set in `frps.toml`.
 - **Kill switch.** `scripts/gateway-ops.sh disable|stop` takes the gateway

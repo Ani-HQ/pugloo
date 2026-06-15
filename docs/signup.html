@@ -1,31 +1,65 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JJZ0RZ3BME"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JJZ0RZ3BME');
+</script>
 <title>pugloo — sign up</title>
-<style>
-  body { font: 16px/1.6 system-ui, sans-serif; max-width: 38rem; margin: 5rem auto; padding: 0 1.25rem; color: #18181b; }
-  h1 { font-size: 1.6rem; margin-bottom: .25rem; }
-  p { color: #52525b; }
-  .btn { display: inline-block; margin: 1.5rem 0; padding: .8rem 1.25rem; background: #18181b; color: #fff;
-         text-decoration: none; border-radius: 8px; font-weight: 600; }
-  pre { background: #f4f4f5; padding: 1rem; border-radius: 8px; overflow-x: auto; }
-  code { background: #f4f4f5; padding: .1rem .35rem; border-radius: 4px; }
-  .muted { color: #71717a; font-size: .9rem; }
-</style>
+<meta name="description" content="Sign in with GitHub to get a pugloo token for stable HTTPS preview URLs on the hosted gateway. No account needed to try it.">
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h1>Get a pugloo account</h1>
-  <p>Sign in with GitHub to get a token for stable HTTPS preview URLs on the hosted gateway.</p>
 
-  <a class="btn" href="https://34.122.152.105.sslip.io/auth/github/start">Sign in with GitHub</a>
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="/">pugloo<span class="cur"> ▸</span></a>
+    <nav class="links">
+      <a href="/#previews">previews</a>
+      <a href="/#local">local https</a>
+      <a href="/#agents">agents</a>
+      <a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">github</a>
+      <a href="/signup.html" class="cta">sign up</a>
+    </nav>
+  </div>
+</header>
 
-  <p>Prefer the terminal? Once installed, just run:</p>
-  <pre>pugloo login</pre>
+<section class="wrap page">
+  <div class="label">sign up</div>
+  <h1 class="page-title">Get a pugloo account</h1>
+  <p class="subtitle">Sign in with GitHub for a token — stable HTTPS preview URLs and higher limits on the hosted gateway.</p>
 
-  <p class="muted">No account needed to try it — <code>pugloo preview</code> works on the free
-  anonymous tier. Signing in gives higher limits and URLs that stay stable across machines.
-  Self-hosting? See the <a href="https://github.com/Ani-HQ/pugloo">repo</a>.</p>
+  <a class="btn" href="https://34.122.152.105.sslip.io/auth/github/start">Sign in with GitHub →</a>
+
+  <p class="note" style="margin-top:1.5rem">Prefer the terminal? Once installed:</p>
+<pre style="margin-top:.4rem"><code><span class="p">$</span> <span class="c">pugloo login</span></code></pre>
+
+  <p class="note" style="margin-top:1.5rem">
+    No account needed to try it — <code class="fg" style="background:var(--code-bg);border:1px solid var(--line);border-radius:4px;padding:.05rem .35rem">pugloo preview</code>
+    works free on the anonymous tier. Signing in gives higher limits and URLs that stay
+    stable across machines. Self-hosting? See the <a href="https://github.com/Ani-HQ/pugloo">repo</a>.
+    By signing in you agree to the <a href="/acceptable-use.html">acceptable use policy</a>.
+  </p>
+</section>
+
+<footer>
+  <div class="wrap foot-row">
+    <span class="stamp">pugloo v0.3.0 · MIT · © 2026</span>
+    <div class="foot-links">
+      <a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">github</a>
+      <a href="https://www.npmjs.com/package/pugloo" target="_blank" rel="noopener">npm</a>
+      <a href="/changelog.html">changelog</a>
+      <a href="/stacktrace/">stacktrace</a>
+      <a href="/signup.html">sign up</a>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
