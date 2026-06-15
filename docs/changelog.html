@@ -1,135 +1,76 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JJZ0RZ3BME"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-JJZ0RZ3BME');
-  </script>
-  <title>pugloo changelog and commit feed</title>
-  <meta name="description" content="Track every notable pugloo release and monitor the latest commit feed generated automatically after each commit.">
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #475569;
-      --border: #e2e8f0;
-      --accent: #0d9488;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    .container { max-width: 920px; margin: 0 auto; padding: 32px 20px 72px; }
-    .top { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-    .home-link, .route-link {
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-    h1 { margin: 0 0 8px; font-size: 2rem; line-height: 1.2; }
-    .subtitle { margin: 0 0 26px; color: var(--muted); line-height: 1.55; }
-    .version, .stream {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 18px 14px;
-      margin-bottom: 14px;
-    }
-    .version h2, .stream h2 { margin: 0 0 10px; font-size: 1.1rem; }
-    .version ul { margin: 0; padding-left: 18px; color: var(--muted); line-height: 1.6; }
-    .stream p { margin: 0 0 12px; color: var(--muted); }
-    .commit-feed { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-    .commit-feed li {
-      display: grid;
-      grid-template-columns: 64px 110px 1fr;
-      gap: 12px;
-      align-items: center;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 0.92rem;
-      color: var(--muted);
-      background: #fff;
-    }
-    .commit-feed code {
-      color: #0f766e;
-      font-weight: 700;
-      background: #f0fdfa;
-      border: 1px solid #ccfbf1;
-      border-radius: 6px;
-      padding: 2px 6px;
-      width: fit-content;
-    }
-    .footer-note { margin-top: 22px; color: var(--muted); font-size: 0.92rem; }
-    @media (max-width: 640px) {
-      .commit-feed li { grid-template-columns: 1fr; gap: 4px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JJZ0RZ3BME"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JJZ0RZ3BME');
+</script>
+<title>pugloo — changelog</title>
+<meta name="description" content="Every notable pugloo release and the latest commit feed, refreshed automatically after each commit.">
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <main class="container">
-    <div class="top">
-      <a class="home-link" href="/">Back to homepage</a>
-      <a class="route-link" href="/stacktrace/">Open Stacktrace</a>
-    </div>
-    <h1>Full Changelog</h1>
-    <p class="subtitle">All notable changes to pugloo are tracked here. You can also follow technical deep dives in the Stacktrace route.</p>
 
-    <section class="version">
-      <h2>0.1.6 - 2026-03-11</h2>
-      <ul>
-        <li>Added a repo-local post-commit automation pipeline for Cursor context refresh and docs commit feed sync.</li>
-        <li>Added `.cursor/rules/clockwork-context.mdc` to enforce local commit context usage and writing constraints.</li>
-        <li>Published a technical deep dive: <a href="/stacktrace/clockwork-commit-context.html">Clockwork Commit Context for Cursor</a>.</li>
-      </ul>
-    </section>
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="/">pugloo<span class="cur"> ▸</span></a>
+    <nav class="links">
+      <a href="/#previews">previews</a>
+      <a href="/#local">local https</a>
+      <a href="/#agents">agents</a>
+      <a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">github</a>
+      <a href="/signup.html" class="cta">sign up</a>
+    </nav>
+  </div>
+</header>
 
-    <section class="version">
-      <h2>0.1.5 - 2026-03-11</h2>
-      <ul>
-        <li>Published <code>v0.1.5</code> to npm.</li>
-        <li>Fixed local <code>.test</code> domains hanging by normalizing <code>{ port }</code> mappings into upstream proxy targets.</li>
-        <li>Stabilized macOS port forwarding by loading PF rules into a dedicated anchor instead of replacing the main ruleset.</li>
-        <li>Improved CLI behavior for <code>start</code>, <code>map</code>, and <code>up</code> by ensuring port forwarding setup is attempted consistently.</li>
-        <li>Added regression tests for proxy route normalization.</li>
-      </ul>
-    </section>
+<main class="wrap page">
+  <div class="label">changelog</div>
+  <h1 class="page-title">Changelog</h1>
+  <p class="subtitle">All notable changes to pugloo. Deep dives live in <a href="/stacktrace/">Stacktrace</a>.</p>
+</main>
 
-    <section class="version">
-      <h2>Commit history highlights - 2026-03-11</h2>
-      <ul>
-        <li><code>feat: support any valid domain and add clockwork docs automation</code></li>
-        <li><code>docs: add full changelog page and update index links</code></li>
-        <li><code>fix: restore local domain routing and stabilize macOS forwarding</code></li>
-        <li><code>0.1.5</code> release commit and release PR merge to <code>main</code>.</li>
-      </ul>
-    </section>
+<div class="wrap prose">
 
-    <section class="version">
-      <h2>Commit history highlights - 2026-03-10</h2>
-      <ul>
-        <li><code>feat: initial release of pugloo - local HTTPS dev proxy</code></li>
-        <li><code>feat: add changelog, update repo links, move site to docs for deployment</code></li>
-        <li><code>feat: add ASCII art banner when running pugloo with no args</code></li>
-        <li><code>feat: implement privilege management and enhance port forwarding setup</code></li>
-        <li>Documentation and convention updates were merged through two PRs.</li>
-      </ul>
-    </section>
+  <section class="ver">
+    <h2>0.1.6 — 2026-03-11</h2>
+    <ul>
+      <li>Repo-local post-commit automation for Cursor context refresh and docs commit-feed sync.</li>
+      <li>Added <code>.cursor/rules/clockwork-context.mdc</code> to enforce local commit-context usage.</li>
+      <li>Deep dive: <a href="/stacktrace/clockwork-commit-context.html">Clockwork Commit Context for Cursor</a>.</li>
+    </ul>
+  </section>
 
-    <section class="stream">
-      <h2>Auto Commit Feed</h2>
-      <p>This list is refreshed by <code>npm run clockwork:sync:changelog</code> when publishing docs updates.</p>
-      <!-- AUTO_COMMIT_FEED_START -->
+  <section class="ver">
+    <h2>0.1.5 — 2026-03-11</h2>
+    <ul>
+      <li>Published <code>v0.1.5</code> to npm.</li>
+      <li>Fixed local <code>.test</code> domains hanging by normalizing <code>{ port }</code> mappings into upstream proxy targets.</li>
+      <li>Stabilized macOS port forwarding via a dedicated PF anchor instead of replacing the main ruleset.</li>
+      <li>Consistent forwarding setup across <code>start</code>, <code>map</code>, and <code>up</code>.</li>
+      <li>Regression tests for proxy route normalization.</li>
+    </ul>
+  </section>
+
+  <section class="ver">
+    <h2>Commit highlights — 2026-03-10</h2>
+    <ul>
+      <li><code>feat: initial release of pugloo — local HTTPS dev proxy</code></li>
+      <li><code>feat: add changelog, update repo links, move site to docs for deployment</code></li>
+      <li><code>feat: implement privilege management and enhance port forwarding setup</code></li>
+    </ul>
+  </section>
+
+  <section class="ver">
+    <h2>Auto commit feed</h2>
+    <p>Refreshed by <code>npm run clockwork:sync:changelog</code> when publishing docs updates.</p>
+    <!-- AUTO_COMMIT_FEED_START -->
     <ul class="commit-feed">
       <li><code>42c630c</code><span>2026-03-11</span><span>docs(changelog): refresh auto commit feed</span></li>
       <li><code>f143471</code><span>2026-03-11</span><span>Update changelog to include recent commit entry for feature supporting any valid domain and clockwork docs automation</span></li>
@@ -151,12 +92,26 @@
       <li><code>24e5d3d</code><span>2026-03-10</span><span>feat: initial release of pugloo - local HTTPS dev proxy</span></li>
     </ul>
 <!-- AUTO_COMMIT_FEED_END -->
-    </section>
+  </section>
 
-    <p class="footer-note">
-      Source of truth: this page at <a href="/changelog.html">/changelog.html</a>.
-      Technical posts: <a href="/stacktrace/">/stacktrace/</a>.
-    </p>
-  </main>
+  <div class="crumbs">
+    <a href="/stacktrace/">stacktrace →</a>
+    <a href="https://github.com/Ani-HQ/pugloo/releases" target="_blank" rel="noopener">github releases →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap foot-row">
+    <span class="stamp">pugloo v0.3.0 · MIT · © 2026</span>
+    <div class="foot-links">
+      <a href="https://github.com/Ani-HQ/pugloo" target="_blank" rel="noopener">github</a>
+      <a href="https://www.npmjs.com/package/pugloo" target="_blank" rel="noopener">npm</a>
+      <a href="/changelog.html">changelog</a>
+      <a href="/stacktrace/">stacktrace</a>
+      <a href="/signup.html">sign up</a>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
