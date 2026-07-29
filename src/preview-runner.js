@@ -65,18 +65,27 @@ if (cfg.transport === "frp") {
 
   frpcChild = spawn(cfg.frp.bin, ["-c", tomlPath], { stdio: ["ignore", "pipe", "pipe"] });
   let started = false;
-  let rejectReason = null;
+  let failed = false;
+  const fail = (reason) => {
+    if (failed) return;
+    failed = true;
+    // Leave a readable failure entry for the polling parent; it removes it.
+    upsertPreview({ ...cfg.entry, status: "error", error: reason, pid: process.pid });
+    if (frpcChild) frpcChild.kill("SIGTERM");
+  };
   const onOutput = (buf) => {
-    const text = buf.toString();
+    const text = buf.toString().replace(/\x1b\[[0-9;]*m/g, "");
     if (!started && /start .* success|proxy .* success/i.test(text)) {
       started = true;
       goLive(`https://${cfg.subdomain}.${cfg.frp.domain}`);
     }
     if (!started) {
-      // Keep the gateway's reject_reason (quota, bad token, claimed subdomain)
-      // so the parent CLI can surface it instead of a generic gateway error.
-      const m = text.match(/(?:error|failed):\s*([^\n]+)/i);
-      if (m) rejectReason = m[1].trim();
+      // Surface the gateway's reject_reason (quota, bad token, claimed
+      // subdomain) instead of a generic gateway error. frpc stays connected
+      // after a proxy-start rejection, so react to the log line — waiting for
+      // exit would hang until the parent's poll timeout.
+      const m = text.match(/start error:\s*([^\n]+)/i) || text.match(/login to (?:the )?server failed:\s*([^\n]+)/i);
+      if (m) fail(m[1].trim());
     }
   };
   frpcChild.stdout.on("data", onOutput);
@@ -85,9 +94,8 @@ if (cfg.transport === "frp") {
     try {
       unlinkSync(tomlPath);
     } catch {}
-    if (started) return shutdown(code || 0);
-    // Leave a readable failure entry for the polling parent; it removes it.
-    upsertPreview({ ...cfg.entry, status: "error", error: rejectReason || `frpc exited (${code})`, pid: process.pid });
+    if (started && !failed) return shutdown(code || 0);
+    fail(`frpc exited (${code})`);
     process.exit(code || 1);
   });
 } else {
