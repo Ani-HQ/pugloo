@@ -41,3 +41,25 @@ export async function fetchGithubUser(accessToken) {
   if (!r.ok) return null;
   return r.json(); // { id, login, email, created_at, ... }
 }
+
+/**
+ * Verify an access token was issued to OUR OAuth app and return its user.
+ * Without this check, any third-party app holding a GitHub token for user X
+ * could mint a pugloo account as X. GitHub's check-token endpoint 404s for
+ * tokens that belong to a different client id.
+ */
+export async function verifyAppToken({ clientId, clientSecret, accessToken }) {
+  const r = await fetch(`${GH_API}/applications/${clientId}/token`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+      "User-Agent": "pugloo-control-plane",
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ access_token: accessToken }),
+  });
+  if (!r.ok) return null;
+  const j = await r.json().catch(() => null);
+  return j?.user || null; // { id, login, ... }
+}

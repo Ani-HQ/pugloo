@@ -13,6 +13,7 @@
  */
 
 import { createServer } from "node:http";
+import { randomBytes } from "node:crypto";
 import { openDb, hashToken } from "./db.js";
 import {
   decideLogin,
@@ -20,7 +21,7 @@ import {
   ownerKeyFor,
   toFrpResponse,
 } from "./decisions.js";
-import { authorizeUrl, exchangeWebCode, fetchGithubUser } from "./github.js";
+import { authorizeUrl, exchangeWebCode, verifyAppToken } from "./github.js";
 
 const PORT = parseInt(process.env.PORT || "8090", 10);
 const DB_PATH = process.env.CONTROL_PLANE_DB || "/var/lib/pugloo/control-plane.db";
@@ -52,6 +53,25 @@ const db = openDb(DB_PATH);
 // run_id -> { ip, account } learned at Login, used to attribute NewProxy to an
 // owner (frp NewProxy content does not always carry the client address).
 const sessions = new Map();
+
+// Pending OAuth web-flow states (CSRF protection): state -> expiry epoch ms.
+const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
+const pendingStates = new Map();
+
+function mintOauthState() {
+  const now = Date.now();
+  for (const [s, exp] of pendingStates) if (exp < now) pendingStates.delete(s);
+  const state = randomBytes(16).toString("hex");
+  pendingStates.set(state, now + OAUTH_STATE_TTL_MS);
+  return state;
+}
+
+function consumeOauthState(state) {
+  const exp = state && pendingStates.get(state);
+  if (!exp) return false;
+  pendingStates.delete(state);
+  return exp >= Date.now();
+}
 
 function readJson(req) {
   return new Promise((resolve) => {
@@ -93,12 +113,24 @@ function resolveAccount(token) {
 function handleLogin(content) {
   const token = tokenFromMetas(content);
   const { account, hadToken } = resolveAccount(token);
-  const runId = content?.run_id;
-  if (runId) {
-    sessions.set(runId, { ip: ipFromAddress(content?.client_address), account });
-    if (sessions.size > 5000) sessions.delete(sessions.keys().next().value); // crude bound
+  const verdict = decideLogin({ account, hadToken });
+  if (!verdict.ok) return toFrpResponse(verdict);
+
+  // frps assigns run_id AFTER this hook, so a first-time login arrives with an
+  // empty run_id and the session (ip, account) could never be attributed at
+  // NewProxy — every anonymous client collapsed into one ip:unknown quota
+  // bucket. Assigning our own run_id here (frps adopts a plugin-modified login
+  // content) makes NewProxy attribution work.
+  let runId = content?.run_id;
+  const assigned = !runId;
+  if (assigned) runId = `cp-${randomBytes(12).toString("hex")}`;
+  sessions.set(runId, { ip: ipFromAddress(content?.client_address), account });
+  if (sessions.size > 5000) sessions.delete(sessions.keys().next().value); // crude bound
+
+  if (assigned) {
+    return { reject: false, unchange: false, content: { ...content, run_id: runId } };
   }
-  return toFrpResponse(decideLogin({ account, hadToken }));
+  return toFrpResponse(verdict);
 }
 
 function handleNewProxy(content) {
@@ -147,8 +179,13 @@ const server = createServer(async (req, res) => {
 
   // --- GitHub OAuth: device-flow exchange (CLI got the github token itself) ---
   if (req.method === "POST" && path === "/auth/github/exchange") {
+    if (!GH_CLIENT_ID || !GH_CLIENT_SECRET) return send(res, 503, { error: "github oauth not configured" });
     const body = await readJson(req);
-    const user = body.github_token ? await fetchGithubUser(body.github_token) : null;
+    // check-token proves the token was issued to OUR app; a bare /user fetch
+    // would accept any third-party app's token for the same user.
+    const user = body.github_token
+      ? await verifyAppToken({ clientId: GH_CLIENT_ID, clientSecret: GH_CLIENT_SECRET, accessToken: body.github_token })
+      : null;
     if (!user) return send(res, 401, { error: "invalid github token" });
     const { account, token } = issueForGithubUser(user);
     return send(res, 200, { token, login: user.login, tier: account.tier });
@@ -158,17 +195,23 @@ const server = createServer(async (req, res) => {
   if (req.method === "GET" && path === "/auth/github/start") {
     if (!GH_CLIENT_ID) return send(res, 503, { error: "github oauth not configured" });
     const redirectUri = PUBLIC_URL ? `${PUBLIC_URL}/auth/github/callback` : undefined;
-    res.writeHead(302, { Location: authorizeUrl({ clientId: GH_CLIENT_ID, redirectUri }) });
+    res.writeHead(302, { Location: authorizeUrl({ clientId: GH_CLIENT_ID, redirectUri, state: mintOauthState() }) });
     return res.end();
   }
   if (req.method === "GET" && path === "/auth/github/callback") {
-    const code = new URL(req.url, "http://x").searchParams.get("code");
+    const params = new URL(req.url, "http://x").searchParams;
+    const code = params.get("code");
+    if (!consumeOauthState(params.get("state"))) {
+      return send(res, 400, { error: "invalid or expired oauth state — restart signup" });
+    }
     if (!code || !GH_CLIENT_ID || !GH_CLIENT_SECRET) {
       return send(res, 400, { error: "missing code or oauth config" });
     }
     const redirectUri = PUBLIC_URL ? `${PUBLIC_URL}/auth/github/callback` : undefined;
     const access = await exchangeWebCode({ clientId: GH_CLIENT_ID, clientSecret: GH_CLIENT_SECRET, code, redirectUri });
-    const user = access ? await fetchGithubUser(access) : null;
+    const user = access
+      ? await verifyAppToken({ clientId: GH_CLIENT_ID, clientSecret: GH_CLIENT_SECRET, accessToken: access })
+      : null;
     if (!user) return send(res, 401, { error: "github auth failed" });
     const { token } = issueForGithubUser(user);
     res.writeHead(200, { "Content-Type": "text/html" });
