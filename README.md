@@ -1,6 +1,10 @@
 # pugloo
 
-Clean HTTPS URLs for local development. Map `https://myapp.dev` to `localhost:3000` with auto-generated TLS certificates and `/etc/hosts` management.
+Preview URLs for coding agents. One command turns the app your agent just
+started into a public HTTPS URL it can drop into a chat reply for review — plus
+a local HTTPS dev proxy (`https://myapp.test` → `localhost:3000`) underneath.
+
+macOS and Linux. Windows is not supported.
 
 ## Install
 
@@ -8,54 +12,40 @@ Clean HTTPS URLs for local development. Map `https://myapp.dev` to `localhost:30
 npm i -g pugloo
 ```
 
-## Quick start
-
-```bash
-# Start a domain mapping (myapp.test -> localhost:3000)
-sudo pugloo start myapp --port 3000
-
-# Or map explicitly
-sudo pugloo map myapp.test 3000
-
-# List active mappings
-pugloo list
-pugloo list --json
-
-# Start services from a .pugloo.yaml config
-sudo pugloo up
-sudo pugloo up --config /path/to/.pugloo.yaml
-```
-
-Then visit `https://myapp.test` in your browser.
-
-## Preview URLs for agents (experimental)
-
-`pugloo preview` gives a coding agent one command to turn the app it just
-started into a public HTTPS URL it can drop into a chat reply for review:
+## Preview URLs for agents
 
 ```bash
 $ pugloo preview --json
-{"schema":1,"url":"https://pugloo-feat-login-abc123.<gateway>","expires":"...",
- "port":3000,"branch":"feat/login","rebound":false,"stability":"machine",
+{"schema":1,"url":"https://myrepo-main-abc123.34.122.152.105.sslip.io","expires":"...",
+ "port":3000,"branch":"main","rebound":false,"stability":"machine",
  "share_hint":"Include this URL in your reply so the reviewer can open it."}
 ```
 
+Works out of the box — no account, no config, no sudo. The CLI ships pointing
+at the hosted gateway and downloads the tunnel client (`frpc`) on first use.
+
 - **Zero args**: detects the running dev server, derives a stable subdomain from
-  the repo + branch, returns in seconds. No sudo, no foreground process.
-- **Consistent**: the same branch always gets the same URL. Set `PUGLOO_TOKEN`
-  and the URL stays stable across machines and CI sandboxes too.
+  the repo + branch, returns in seconds. No foreground process to babysit.
+- **Consistent**: the same branch always gets the same URL. Sign in and the URL
+  stays stable across machines and CI sandboxes too.
 - **Agent-friendly**: JSON on stdout, documented exit codes (`PUGLOO_ERR_*`),
   idempotent re-runs, `--stop` to tear down.
 
-It needs a relay to hand out public URLs. Stand one up (a single frps + Caddy
-VM) with [`infra/gateway/setup-gateway.sh`](infra/gateway/), then:
+### Hosted tiers
 
-```bash
-source ~/.pugloo/preview.env   # PUGLOO_FRP_SERVER / _DOMAIN / _TOKEN / _BIN
-pugloo preview --json
-```
+| Tier | How | Concurrent previews |
+|---|---|---|
+| anonymous | just run `pugloo preview` | 1 |
+| free | `pugloo login` (GitHub) | 3 |
 
-Without `PUGLOO_FRP_*`, preview falls back to the built-in WebSocket tunnel.
+Previews are public URLs with a 24h default TTL. Acceptable use:
+<https://pugloo.ani.computer/acceptable-use>.
+
+### Self-hosting the gateway
+
+The relay is a single frps + Caddy + control-plane VM; provision your own with
+[`infra/gateway/`](infra/gateway/) and point the CLI at it via
+`PUGLOO_FRP_SERVER` / `PUGLOO_FRP_DOMAIN` (env or `~/.pugloo/preview.env`).
 
 ### Drive it from an agent
 
@@ -70,6 +60,25 @@ claude mcp add pugloo -- pugloo mcp
 It auto-loads gateway config from `~/.pugloo/preview.env`. See
 [`AGENTS.md`](AGENTS.md) for the full JSON/exit-code contract and
 [`integrations/`](integrations/) for the MCP config and a Claude Code skill.
+
+## Local HTTPS domains
+
+```bash
+# Start a domain mapping (myapp.test -> localhost:3000)
+sudo pugloo start myapp --port 3000
+
+# Or map explicitly
+sudo pugloo map myapp.test 3000
+
+# List active mappings
+pugloo list
+pugloo list --json
+
+# Start services from a .pugloo.yaml config
+sudo pugloo up
+```
+
+Then visit `https://myapp.test` in your browser.
 
 ## Features
 
@@ -125,7 +134,7 @@ Then run `sudo pugloo up` to register all mappings at once. Use `pugloo down` to
 | `pugloo trust` | Trust the root CA in system keychain |
 | `pugloo update` | Update to latest version |
 | `pugloo uninstall` | Remove all pugloo data |
-| `pugloo login` | Log in (for share; requires hosted service) |
+| `pugloo login` | Sign in with GitHub for hosted previews (higher tier, stable URLs) |
 
 Most commands that modify `/etc/hosts` require `sudo`.
 

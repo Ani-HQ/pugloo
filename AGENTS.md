@@ -102,5 +102,8 @@ pugloo preview --json --stop     # tear down this repo+branch preview
 ```
 
 Re-running with the same repo+branch is idempotent: same URL, refreshed expiry.
-Without a gateway configured (`PUGLOO_FRP_*`), preview uses the built-in
-WebSocket tunnel as a fallback.
+
+No configuration is needed: preview defaults to the hosted gateway (anonymous
+tier, 1 concurrent preview; `pugloo login` → free tier, 3). Quota and token
+rejections exit `8` with the gateway's reason in `message` — do not retry them
+unchanged. `PUGLOO_FRP_*` env vars point at a self-hosted gateway instead.
