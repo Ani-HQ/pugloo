@@ -1,4 +1,4 @@
-import { spawn, execSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { writeFileSync, openSync } from "node:fs";
 import net from "node:net";
 import { fileURLToPath } from "node:url";
@@ -19,6 +19,14 @@ import {
 } from "./previews.js";
 import { buildPreviewResult } from "./preview-contract.js";
 import { loadPolicy, assertPreviewsAllowed, assertPortAllowed, clampTtl } from "./policy.js";
+import {
+  withPreviewEnv,
+  findFrpc,
+  ensureFrpc,
+  DEFAULT_FRP_SERVER,
+  DEFAULT_FRP_PORT,
+  DEFAULT_FRP_DOMAIN,
+} from "./gateway.js";
 
 /**
  * Shared preview engine used by both the CLI (`pugloo preview`) and the MCP
@@ -48,33 +56,27 @@ function isPortListening(port, timeoutMs = 1500) {
   });
 }
 
-export function resolveTransport(env = process.env) {
-  if (env.PUGLOO_FRP_SERVER && env.PUGLOO_FRP_DOMAIN) {
-    let bin = env.PUGLOO_FRP_BIN;
-    if (!bin) {
-      try {
-        bin = execSync("which frpc", { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
-      } catch {
-        bin = null;
-      }
-    }
-    if (bin) {
-      return {
-        transport: "frp",
-        frp: {
-          bin,
-          server: env.PUGLOO_FRP_SERVER,
-          port: parseInt(env.PUGLOO_FRP_PORT || "7000", 10),
-          // Personal account token (optional). Sent as frp client metadata and
-          // validated by the gateway control-plane plugin; absent = anonymous
-          // tier. Replaces the old shared PUGLOO_FRP_TOKEN secret.
-          token: env.PUGLOO_TOKEN || "",
-          domain: env.PUGLOO_FRP_DOMAIN,
-        },
-      };
-    }
-  }
-  return { transport: "ws" };
+export function resolveTransport(env = process.env, { envPath } = {}) {
+  // Precedence: real env > ~/.pugloo/preview.env > hosted-gateway defaults, so
+  // a fresh `npm i -g pugloo && pugloo preview` reaches the hosted relay with
+  // zero configuration. PUGLOO_TRANSPORT=ws opts into the legacy WS tunnel
+  // (requires PUGLOO_TUNNEL_SERVER pointing at a self-hosted gateway).
+  const e = withPreviewEnv(env, envPath);
+  if (e.PUGLOO_TRANSPORT === "ws") return { transport: "ws" };
+  return {
+    transport: "frp",
+    frp: {
+      // May be null on first run; createPreview installs it via ensureFrpc.
+      bin: findFrpc(e),
+      server: e.PUGLOO_FRP_SERVER || DEFAULT_FRP_SERVER,
+      port: parseInt(e.PUGLOO_FRP_PORT || String(DEFAULT_FRP_PORT), 10),
+      // Personal account token (optional). Sent as frp client metadata and
+      // validated by the gateway control-plane plugin; absent = anonymous
+      // tier. Replaces the old shared PUGLOO_FRP_TOKEN secret.
+      token: e.PUGLOO_TOKEN || "",
+      domain: e.PUGLOO_FRP_DOMAIN || DEFAULT_FRP_DOMAIN,
+    },
+  };
 }
 
 function waitForLive(id, startedAt = Date.now()) {
@@ -83,6 +85,7 @@ function waitForLive(id, startedAt = Date.now()) {
       const entries = loadPreviews({ prune: false });
       const e = entries[id];
       if (e && e.status === "live" && e.url) return resolve(e);
+      if (e && e.status === "error") return resolve(e);
       if (e && e.status === "starting" && !isPidAlive(e.pid) && Date.now() - startedAt > 1000) {
         return resolve(null);
       }
@@ -93,8 +96,7 @@ function waitForLive(id, startedAt = Date.now()) {
   });
 }
 
-function startRunner({ id, subdomain, port, ttlSec, expires, env }) {
-  const trans = resolveTransport(env);
+function startRunner({ id, subdomain, port, ttlSec, expires, trans, env }) {
   const entry = { id, subdomain, port, status: "starting", pid: null, expires, created: new Date().toISOString() };
   upsertPreview({ ...entry, pid: 0 });
 
@@ -120,11 +122,12 @@ function startRunner({ id, subdomain, port, ttlSec, expires, env }) {
 
   upsertPreview({ ...entry, pid: child.pid });
   return waitForLive(id).then((live) => {
-    if (!live) {
+    if (!live || live.status === "error") {
       try {
         process.kill(child.pid, "SIGTERM");
       } catch {}
       removePreview(id);
+      return { live: null, reason: live?.error || null, transport: trans.transport };
     }
     return { live, transport: trans.transport };
   });
@@ -201,9 +204,26 @@ export async function createPreview({ port: portOpt, name, ttl } = {}, { env = p
     : subdomain0;
   const id = previewId(ctx.repoId, ctx.branch, subdomain);
 
-  const { live, transport } = await startRunner({ id, subdomain, port, ttlSec, expires, env });
+  const trans = resolveTransport(env);
+  if (trans.transport === "frp" && !trans.frp.bin) {
+    trans.frp.bin = await ensureFrpc({ env });
+  }
+
+  const { live, reason, transport } = await startRunner({ id, subdomain, port, ttlSec, expires, trans, env });
   if (!live) {
-    throw new PreviewError(ERR.GATEWAY, "Could not establish the tunnel", "Re-run preview (idempotent); check `pugloo doctor` and ~/.pugloo/logs/.");
+    if (reason && /token|banned|revoked|unauthorized|limit|quota|claimed/i.test(reason)) {
+      const hint = /limit|quota/i.test(reason)
+        ? "Stop an existing preview (`pugloo preview --stop`) or `pugloo login` for a higher tier."
+        : /claimed/i.test(reason)
+          ? "That subdomain belongs to another owner — pass --name to pick a different one."
+          : "Run `pugloo login` to refresh your token.";
+      throw new PreviewError(ERR.AUTH, `Gateway rejected the tunnel: ${reason}`, hint);
+    }
+    throw new PreviewError(
+      ERR.GATEWAY,
+      reason ? `Could not establish the tunnel: ${reason}` : "Could not establish the tunnel",
+      "Re-run preview (idempotent); check `pugloo doctor` and ~/.pugloo/logs/."
+    );
   }
   upsertPreview({ ...live, transport, expires });
   return buildPreviewResult({ url: live.url, expires, port, branch: ctx.branch, rebound, stability: owner.stability, transport, subdomain, siblingOf, detected });

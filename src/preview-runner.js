@@ -65,10 +65,18 @@ if (cfg.transport === "frp") {
 
   frpcChild = spawn(cfg.frp.bin, ["-c", tomlPath], { stdio: ["ignore", "pipe", "pipe"] });
   let started = false;
+  let rejectReason = null;
   const onOutput = (buf) => {
-    if (!started && /start .* success|proxy .* success/i.test(buf.toString())) {
+    const text = buf.toString();
+    if (!started && /start .* success|proxy .* success/i.test(text)) {
       started = true;
       goLive(`https://${cfg.subdomain}.${cfg.frp.domain}`);
+    }
+    if (!started) {
+      // Keep the gateway's reject_reason (quota, bad token, claimed subdomain)
+      // so the parent CLI can surface it instead of a generic gateway error.
+      const m = text.match(/(?:error|failed):\s*([^\n]+)/i);
+      if (m) rejectReason = m[1].trim();
     }
   };
   frpcChild.stdout.on("data", onOutput);
@@ -77,7 +85,10 @@ if (cfg.transport === "frp") {
     try {
       unlinkSync(tomlPath);
     } catch {}
-    shutdown(started ? 0 : code || 1);
+    if (started) return shutdown(code || 0);
+    // Leave a readable failure entry for the polling parent; it removes it.
+    upsertPreview({ ...cfg.entry, status: "error", error: rejectReason || `frpc exited (${code})`, pid: process.pid });
+    process.exit(code || 1);
   });
 } else {
   // Fallback transport: the existing pugloo WebSocket tunnel.
