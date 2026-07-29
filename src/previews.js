@@ -41,7 +41,7 @@ export function loadPreviews({ prune = true } = {}) {
   const now = Date.now();
   for (const [id, e] of Object.entries(entries)) {
     const expired = e.expires && Date.parse(e.expires) < now;
-    if (expired || (e.status === "live" && !isPidAlive(e.pid))) {
+    if (expired || (e.status !== "starting" && !isPidAlive(e.pid))) {
       delete entries[id];
       dirty = true;
     }
