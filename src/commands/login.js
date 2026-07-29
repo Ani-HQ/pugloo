@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { execFile } from 'node:child_process';
 import { bold, green, dim, cyan, symbols } from '../colors.js';
+import { DEFAULT_API_URL } from '../gateway.js';
 
 const ENV_PATH = join(homedir(), '.pugloo', 'preview.env');
 
@@ -38,9 +39,10 @@ function readEnvValue(key) {
 function apiBase() {
   if (process.env.PUGLOO_API) return process.env.PUGLOO_API.replace(/\/$/, '');
   // The gateway's apex host serves /auth + /health (Caddy routes them to the
-  // control-plane); preview subdomains live under it.
+  // control-plane); preview subdomains live under it. Fresh installs fall back
+  // to the hosted gateway so login works with zero configuration.
   const domain = readEnvValue('PUGLOO_FRP_DOMAIN');
-  return domain ? `https://${domain}` : null;
+  return domain ? `https://${domain}` : DEFAULT_API_URL;
 }
 
 function openBrowser(url) {
