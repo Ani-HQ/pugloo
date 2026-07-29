@@ -47,25 +47,29 @@ PROJECT=my-gcp-project DOMAIN=preview.example.com EMAIL=you@example.com ./setup-
 
 The script reserves a static IP, opens the firewall (7000/80/443), and creates
 an `e2-micro` VM whose startup script installs frps + Caddy from the templates
-here. It prints the client env block to paste into `~/.pugloo/preview.env`.
-The frp auth token is generated on the VM and printed once — keep it secret
-(it controls who can open tunnels). It is never committed.
+here. There is no shared frp token: per-client auth and quotas come from the
+control-plane plugin — deploy it with `deploy-control-plane.sh` after the VM
+is up (frps rejects tunnels fail-closed until the plugin responds).
 
 Set `DOMAIN` to use a vanity wildcard host (`https://<sub>.$DOMAIN`); you must
 first create a wildcard DNS record `*.$DOMAIN` -> the VM's static IP (grey-cloud
 / DNS-only if behind Cloudflare). Without `DOMAIN`, previews use sslip.io and
-need no DNS records at all. The live instance for this repo runs with
-`DOMAIN=preview.ani.computer`.
+need no DNS records at all. The live instance for this repo runs in sslip.io
+mode (`subDomainHost = 34.122.152.105.sslip.io`) to shield the brand domain.
 
 ## Use it
 
+The published CLI defaults to the hosted gateway — `pugloo preview` just works.
+To point it at your own gateway instead, set (env or `~/.pugloo/preview.env`):
+
 ```bash
-source ~/.pugloo/preview.env     # PUGLOO_FRP_SERVER / _DOMAIN / _TOKEN / _BIN
-pugloo preview --json            # → https://<sub>.<ip>.sslip.io
+export PUGLOO_FRP_SERVER=<vm-ip>
+export PUGLOO_FRP_DOMAIN=<vm-ip>.sslip.io   # or your vanity domain
+pugloo preview --json                        # → https://<sub>.<domain>
 ```
 
-Without `PUGLOO_FRP_*` set, `pugloo preview` falls back to the built-in
-WebSocket tunnel transport.
+`PUGLOO_TOKEN` (from `pugloo login` or an admin-minted token) selects your
+account tier; without it you're on the anonymous tier (1 concurrent tunnel).
 
 ## Running it open to the public
 
@@ -90,18 +94,16 @@ tunnel relay. Protect yourself:
   the bare `$DOMAIN`; with a wildcard-only DNS record (`*.$DOMAIN`) the apex has
   no A record, so either add a bare `$DOMAIN` A record or remove that block.
 
-The token gate (`auth.token`) means the gateway is not truly "open" until you
-hand the token out. Real per-user accounts/quotas need the control-plane
-(`services/control-plane`), which is not built yet — until then, treat a shared
-token as the only gate.
+Accounts, quotas, and bans are enforced by the control-plane
+(`services/control-plane`), deployed on the VM as an frps `[[httpPlugins]]`
+hook plus the `/auth/*` GitHub OAuth endpoints (routed via Caddy). Tiers:
+anonymous (no token) = 1 concurrent tunnel; free (GitHub account) = 3.
+Secrets live in `/etc/pugloo-cp.env` (0600) on the VM.
 
 ## Files
 
 - `setup-gateway.sh` — one-shot provisioner (idempotent: re-running reuses the IP/VM).
-- `frps.toml.tmpl` — frp server config (`__SUBDOMAIN_HOST__`/`__TOKEN__` filled at boot).
+- `deploy-control-plane.sh` — deploy/update the accounts/quotas plugin (idempotent; preserves the DB and secrets).
+- `frps.toml.tmpl` — frp server config (`__SUBDOMAIN_HOST__` filled at boot; no shared token — the control-plane plugin authenticates clients).
 - `Caddyfile.tmpl` — Caddy on-demand-TLS reverse proxy (`__SUBDOMAIN_HOST__`/`__EMAIL__` filled at boot).
 - `../../scripts/gateway-ops.sh` — operate/kill the running gateway.
-
-- `setup-gateway.sh` — one-shot provisioner (idempotent: re-running reuses the IP/VM).
-- `frps.toml.tmpl` — frp server config (`__SUBDOMAIN_HOST__`/`__TOKEN__` filled at boot).
-- `Caddyfile.tmpl` — Caddy on-demand-TLS reverse proxy (`__SUBDOMAIN_HOST__`/`__EMAIL__` filled at boot).

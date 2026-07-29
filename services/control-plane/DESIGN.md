@@ -1,10 +1,11 @@
 # Control plane — accounts, tokens, quotas (design)
 
-Status: SCOPING (not built). Today the gateway is gated by one shared frp
-`auth.token`, so "open signup" is really "everyone shares one secret." This doc
-scopes the smallest real accounts system that lets strangers sign up, get their
-own token, and be quota'd and bannable — without it, you can't safely drop the
-shared token.
+Status: Phases 1–2 SHIPPED and live on the gateway VM (per-client tokens via
+frps plugin hook, GitHub OAuth signup, anonymous + free tiers, fail-closed
+NewProxy). Phase 3 (usage metering, revoke/ban API, `/me`) is designed below
+but NOT built — the tier table's bandwidth caps are not enforced yet, and
+server-side TTL enforcement is still missing. Historical scoping context
+follows unchanged.
 
 ## Goal & non-goals
 
@@ -17,10 +18,10 @@ Keep it one small service + one Postgres DB next to the existing gateway VM.
 
 ## Why the current shape can't do it
 
-- frp uses a single static `auth.token` for everyone — no per-user identity,
-  no per-user revocation, no quotas.
-- `services/control-plane` is a 501 stub designed for stateless Cloud Run; it has
-  no datastore and isn't wired to frp.
+- (Pre-Phase-1) frp used a single static `auth.token` for everyone — no
+  per-user identity, no per-user revocation, no quotas.
+- (Pre-Phase-1) `services/control-plane` was a 501 stub designed for stateless
+  Cloud Run; it had no datastore and wasn't wired to frp.
 
 The unlock is **frp server plugins**: frps can call an HTTP service on each
 control operation (`Login`, `NewProxy`, `NewUserConn`, `Ping`) and that service
